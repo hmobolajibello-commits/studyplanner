@@ -1,0 +1,4 @@
+# There is nothing to build — the repo is the site. Connect it to Netlify and
+# these settings are picked up automatically; headers come from _headers.
+[build]
+  publish = "."
