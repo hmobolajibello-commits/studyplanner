@@ -39,6 +39,10 @@ rebuilds from today with whatever days are left, and blocks already ticked stay 
 
 ## Files
 
+> **There is no build step and no dependencies — no npm, no bundler, no `package.json`.**
+> If a host asks which framework this is, the answer is *none* / *Other* / *static*.
+
+
 | File | What it is |
 | --- | --- |
 | `index.html` | The whole app — markup, styles, planner logic, install prompt |
@@ -47,6 +51,7 @@ rebuilds from today with whatever days are left, and blocks already ticked stay 
 | `icons/` | 192px and 512px icons, a maskable 512px icon, and a 180px Apple touch icon |
 | `_headers` | Cache and security headers for Netlify / Cloudflare Pages |
 | `netlify.toml` | Tells Netlify there is nothing to build and to publish the repo root |
+| `vercel.json` | Same for Vercel: no framework, no build, serve the root, plus the headers |
 
 ## Deploying it
 
@@ -61,6 +66,14 @@ defaults; `netlify.toml` supplies them.
 
 **Cloudflare Pages** — connect the repo, leave the build command empty and set the output
 directory to `/`.
+
+**Vercel** — *Add New → Project*, import this repo, and deploy. Leave the framework preset
+alone: `vercel.json` pins **Framework Preset: Other** with no real build step, which is what
+this repo needs. Do **not** pick the Vite (or any other framework) preset — that makes
+Vercel run `npm run build` and look for a `dist/` folder, and there is no `package.json`
+here to build, so the deploy fails. If a project was already created with a framework
+preset, `vercel.json` overrides it on the next deploy; you can also set it back by hand
+under Settings → General → Framework Preset → *Other*.
 
 **Anywhere else** — copy the whole folder to any static host. The page, manifest, service
 worker and icons must stay together, and the service worker needs **https** (or
