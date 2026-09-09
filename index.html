@@ -132,6 +132,7 @@ button{font:inherit}
 .install .install-text{min-width:200px; flex:1}
 .install strong{display:block}
 .install .install-actions{display:flex; gap:8px; align-items:center; flex:none}
+footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--muted)}
 .error{margin-top:12px; color:var(--danger); font-size:14px; font-weight:600}
 .actions{display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-top:16px}
 [hidden]{display:none !important}
@@ -212,6 +213,8 @@ button{font:inherit}
       </form>
     </section>
   </main>
+
+  <footer class="credit">Made by Hakeem Mobolaji-Bello &middot; &copy; <span id="year">2026</span></footer>
 </div>
 
 <script>
@@ -765,6 +768,9 @@ button{font:inherit}
   if (!Array.isArray(state.settings.busyDays)) state.settings.busyDays = [];
   state.view = viewFromHash() || (state.plan ? "today" : "setup");
   render();
+
+  var yearEl = document.getElementById("year");
+  if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
   window.addEventListener("hashchange", function () {
     var v = viewFromHash();
