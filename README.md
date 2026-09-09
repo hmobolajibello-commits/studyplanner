@@ -40,6 +40,18 @@ student's own device.
 - Nothing fires on a rest day, or once you have ticked everything off
 - *Send a test* shows exactly what a reminder looks like
 
+**Per subject**
+- **Topics** — list them (`Algebra, Trigonometry, Calculus`) and the plan works through them one at a time, so tasks read *"Practice questions on Trigonometry"* rather than *"…in Math"*
+- **Priority** — low / normal / high shifts hours toward the subjects you're weak at
+- **Its own exam date** — optional; a subject stops being scheduled once its exam has passed, and gets extra weight in the last week before it
+- **Links** — your own revision sites or folders, one tap from the day's block
+
+**Mock exams** — a full timed paper every week or fortnight, on a weekend where possible, always for whichever exam is closest.
+
+**Free study material** — links out to Khan Academy, OpenStax, CK-12, LibreTexts, MIT OpenCourseWare and Project Gutenberg, plus per-subject *Practice questions* and *Past papers* searches. Nothing is copied or hosted: exam papers belong to the boards that wrote them.
+
+**Backup** — save a JSON file of everything and restore it on another device. Otherwise a plan lives only in one browser on one phone.
+
 **Changing things** — edit anything on the Setup tab and press *Generate my plan*. The plan
 rebuilds from today with whatever days are left, and blocks already ticked stay ticked.
 *Clear all saved data* removes everything from the device.
@@ -137,6 +149,24 @@ to `@capacitor/local-notifications` (scheduled daily by Android, rescheduled whe
 times change, cancelled when the toggle goes off), the service worker is skipped since the
 assets are already local, and the install bar is hidden. `www/` and `node_modules/` are
 build artefacts and are not committed.
+
+## How the plan decides
+
+Every block goes to whichever eligible subject is furthest behind its fair share, where the
+share is set by **priority** (low 0.6, normal 1, high 1.5) multiplied by **1.6 when that
+subject's exam is within a week**. A subject drops out of the running once its own exam
+date has passed. The effect: high-priority and imminent subjects get more time without the
+others being starved, and nothing is scheduled for an exam you have already sat.
+
+Task wording follows how close *that subject's* exam is, not the overall date, so a subject
+sitting on Friday is in final revision while one three weeks out is still learning.
+
+## The classic version
+
+The original single-date planner is kept two ways: live at [`/classic/`](classic/), and as
+the `v1-classic` branch. Nothing in v2 removed a feature — subjects with no topics, no
+priority and no date of their own behave exactly as they did in v1, and saved v1 data is
+migrated on load.
 
 ## How reminders work, and what they cannot do
 

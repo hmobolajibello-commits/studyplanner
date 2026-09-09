@@ -3,15 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Study Planner</title>
+<title>Study Planner (classic)</title>
 <meta name="description" content="Turn your subjects, exam date and free hours into a day-by-day study plan. Works offline, stores everything on your own device.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#10151b" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6f5e'/%3E%3Cpath d='M8 10h16M8 16h16M8 22h10' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -133,35 +130,6 @@ button{font:inherit}
 .install strong{display:block}
 .install .install-actions{display:flex; gap:8px; align-items:center; flex:none}
 footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--muted)}
-/* Subject cards */
-.subjects{list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:8px}
-.subject-card{border:1px solid var(--line); border-radius:12px; background:var(--card-2); overflow:hidden}
-.subject-card.open{border-color:var(--accent)}
-.subject-head{display:flex; align-items:stretch; gap:6px}
-.subject-name{flex:1; min-width:0; text-align:left; padding:12px; border:0; background:none; color:var(--ink); font:inherit; font-weight:650; cursor:pointer}
-.subject-name .small{display:block; font-weight:400; margin-top:2px}
-.subject-head .drop{flex:none; width:44px; border:0; border-left:1px solid var(--line); background:none; color:var(--muted); font-size:20px; cursor:pointer}
-.subject-head .drop:hover{color:var(--danger)}
-.subject-body{padding:0 12px 14px; border-top:1px solid var(--line-soft)}
-.subject-body .field:first-child{margin-top:10px}
-select{width:100%; margin-top:6px; padding:11px 12px; font:inherit; font-size:16px; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:10px; min-height:44px}
-.links{list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:6px}
-.links li{display:flex; align-items:center; gap:8px; font-size:14px}
-.links li a{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--accent)}
-.links li .small{flex:none; max-width:45%; text-align:right}
-#freeSources li{display:block}
-#freeSources li .small{display:block; max-width:none; text-align:left; margin-top:1px}
-.links .drop{flex:none; width:32px; min-height:32px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--muted); cursor:pointer}
-a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(--ink)}
-
-/* Mock exam blocks and the per-block links */
-.block.mock{border-color:var(--accent); background:var(--accent-soft)}
-.mock-tag{border-color:var(--accent) !important; color:var(--accent); font-weight:650}
-.block-links{display:flex; flex-wrap:wrap; gap:12px; padding:0 12px 10px 46px; font-size:13px}
-.block-links a{color:var(--accent)}
-.blocks > li{border:1px solid var(--line-soft); border-radius:12px; background:var(--card-2); overflow:hidden}
-.blocks > li .block{border:0; border-radius:0; background:none}
-
 /* Reminders */
 .switch{display:flex; gap:12px; align-items:flex-start; padding:12px; margin-top:12px; border:1px solid var(--line-soft); border-radius:12px; background:var(--card-2); cursor:pointer}
 .switch input{flex:none; width:22px; height:22px; margin:1px 0 0; accent-color:var(--accent); cursor:pointer}
@@ -186,7 +154,7 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>Study Planner</h1>
+    <h1>Study Planner <span style="font-size:13px;font-weight:400;color:var(--muted)">classic</span></h1>
     <p class="tagline" id="tagline">A day-by-day plan from today to your exam.</p>
   </header>
 
@@ -230,10 +198,10 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
           <input type="text" id="subjectInput" placeholder="e.g. Math" autocomplete="off" enterkeyhint="done" aria-label="Subject name">
           <button type="button" class="btn" id="addSubject">Add</button>
         </div>
-        <ul class="subjects" id="subjectChips"></ul>
+        <ul class="chips" id="subjectChips"></ul>
 
         <label class="field" for="examDate">Exam date
-          <span class="hint">Used for any subject without its own date. The plan runs up to the day before the last exam.</span>
+          <span class="hint">The plan runs from today up to the day before this date.</span>
           <input type="date" id="examDate" required>
         </label>
 
@@ -251,40 +219,12 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
         <div class="field" id="busyLabel">Busy days <span class="hint">Optional &mdash; tick any day you can&rsquo;t study at all.</span></div>
         <div class="days-grid" id="busyDays" role="group" aria-labelledby="busyLabel"></div>
 
-        <label class="field" for="mocks">Mock exams
-          <span class="hint">Full timed papers, scheduled on weekends where possible.</span>
-          <select id="mocks">
-            <option value="weekly">Every week</option>
-            <option value="fortnightly">Every two weeks</option>
-            <option value="off">None</option>
-          </select>
-        </label>
-
         <p class="error" id="formError" hidden></p>
         <button type="submit" class="btn primary" id="generateBtn">Generate my plan</button>
         <div class="actions">
           <button type="button" class="btn link" id="loadSample">Load example details</button>
           <button type="button" class="btn link danger" id="clearAll">Clear all saved data</button>
         </div>
-      </form>
-
-      <div class="card">
-        <h2>Free study material</h2>
-        <p class="muted small">Open, free sites — the app links out, it never copies anything. Each subject also has
-          its own <em>Practice questions</em> and <em>Past papers</em> buttons that search for that subject.</p>
-        <ul class="links" id="freeSources"></ul>
-      </div>
-
-      <div class="card">
-        <h2>Backup</h2>
-        <p class="muted small">Your plan lives in this app on this device only. A backup is one file you can keep
-          or move to another phone.</p>
-        <div class="actions">
-          <button type="button" class="btn" id="exportBtn">Save a backup file</button>
-          <button type="button" class="btn" id="importBtn">Restore from a backup</button>
-        </div>
-        <input type="file" id="importFile" accept="application/json,.json" hidden>
-        <p class="error" id="importError" hidden></p>
       </form>
     </section>
   </main>
@@ -336,7 +276,7 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
   function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
 
   /* ------------------------------------------------------------- storage */
-  var state = { settings: null, plan: null, done: {}, reminders: null, view: "today", showPast: false, openSubject: -1 };
+  var state = { settings: null, plan: null, done: {}, reminders: null, view: "today", showPast: false };
 
   function load() {
     try {
@@ -344,7 +284,7 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
       if (!raw) return;
       var saved = JSON.parse(raw);
       if (saved && saved.settings) {
-        state.settings = migrateSettings(saved.settings);
+        state.settings = saved.settings;
         state.plan = saved.plan || null;
         state.done = saved.done || {};
       }
@@ -359,110 +299,45 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     } catch (e) { /* private mode / quota: the app still works for this session */ }
   }
 
-  /* ------------------------------------------------------- subject model */
-  // v1 stored subjects as plain strings. Each one now carries its own exam
-  // date, priority, topic list and links — migrated on load so an existing
-  // plan keeps working.
-  var PRIORITY_WEIGHT = { low: 0.6, normal: 1, high: 1.5 };
-  var URGENT_DAYS = 7;        // a subject sitting within a week gets extra time
-  var URGENT_BOOST = 1.6;
-  var MAX_TOPICS = 30;
-
-  function makeSubject(name) {
-    return { name: name, examDate: "", priority: "normal", topics: [], links: [] };
-  }
-  function migrateSubject(raw) {
-    if (typeof raw === "string") return makeSubject(raw);
-    if (!raw || typeof raw !== "object" || !raw.name) return null;
-    return {
-      name: String(raw.name).slice(0, 40),
-      examDate: /^\d{4}-\d{2}-\d{2}$/.test(raw.examDate || "") ? raw.examDate : "",
-      priority: PRIORITY_WEIGHT[raw.priority] ? raw.priority : "normal",
-      topics: Array.isArray(raw.topics)
-        ? raw.topics.map(function (t) { return String(t).slice(0, 60); }).filter(Boolean).slice(0, MAX_TOPICS)
-        : [],
-      links: Array.isArray(raw.links)
-        ? raw.links.filter(function (l) { return l && l.url; }).map(function (l) {
-            return { label: String(l.label || l.url).slice(0, 60), url: String(l.url).slice(0, 400) };
-          }).slice(0, 10)
-        : []
-    };
-  }
-  function migrateSettings(s) {
-    if (!s) return s;
-    s.subjects = (Array.isArray(s.subjects) ? s.subjects : []).map(migrateSubject).filter(Boolean);
-    if (["off", "weekly", "fortnightly"].indexOf(s.mocks) === -1) s.mocks = "weekly";
-    return s;
-  }
-  // The subject's own exam date, or the overall one when it has none.
-  function examOf(subject, settings) { return subject.examDate || settings.examDate; }
-  function lastExamDate(settings) {
-    var last = settings.examDate;
-    settings.subjects.forEach(function (s) {
-      if (s.examDate && daysBetween(last, s.examDate) > 0) last = s.examDate;
-    });
-    return last;
-  }
-
-  /* ----------------------------------------------- free study material */
-  // Linking out, never hosting: these are well-known free sites, and the
-  // per-topic buttons run a search so they keep working when pages move.
-  var FREE_SOURCES = [
-    { name: "Khan Academy", url: "https://www.khanacademy.org/", note: "Lessons and practice, most school subjects" },
-    { name: "OpenStax", url: "https://openstax.org/subjects", note: "Free peer-reviewed textbooks" },
-    { name: "CK-12", url: "https://www.ck12.org/", note: "Practice sets and flexbooks" },
-    { name: "LibreTexts", url: "https://libretexts.org/", note: "Free textbooks, sciences and humanities" },
-    { name: "MIT OpenCourseWare", url: "https://ocw.mit.edu/", note: "Full courses with problem sets" },
-    { name: "Project Gutenberg", url: "https://www.gutenberg.org/", note: "Free copies of set texts" }
-  ];
-  function searchUrl(terms) {
-    return "https://duckduckgo.com/?q=" + encodeURIComponent(terms);
-  }
-  function practiceSearch(subject, topic) {
-    return searchUrl((topic ? topic + " " + subject : subject) + " free practice questions");
-  }
-  function pastPaperSearch(subject) {
-    return searchUrl(subject + " past exam papers free pdf");
-  }
-
   /* ------------------------------------------------------- plan building */
-  // Task wording follows how close *that subject's* exam is, so a subject
-  // sitting on Friday is in final revision while one three weeks out is still
-  // learning. {f} is the focus: the topic when there is one, else the subject.
+  // Study advice moves through four phases as the exam gets closer: learn,
+  // practise, test, then light revision.
   var PHASES = [
     { until: 0.35, tasks: [
-      "Read through the core material for {f} and take short notes",
-      "Learn the key definitions and formulas in {f}",
-      "Summarise {f} in your own words",
-      "Start a one-page summary sheet for {f}"
+      "Read through the core material for {s} and take short notes",
+      "Learn the key definitions and formulas in {s}",
+      "Summarise one topic of {s} in your own words",
+      "Start a one-page summary sheet for {s}"
     ]},
     { until: 0.70, tasks: [
-      "Work through practice questions on {f}",
-      "Review your {f} notes, then test yourself with them closed",
-      "Practise the {f} question types you find hardest",
-      "Redo the {f} problems you got wrong and note why"
+      "Work through practice questions in {s}",
+      "Review your {s} notes, then test yourself with them closed",
+      "Practise the {s} question types you find hardest",
+      "Redo the {s} problems you got wrong and note why"
     ]},
     { until: 0.90, tasks: [
-      "Do a timed practice set on {f}",
-      "Cover your {f} summary sheet and rewrite it from memory",
-      "Go back over past mistakes in {f} and close the gaps",
-      "Mixed practice across {f}"
+      "Do a timed practice set for {s}",
+      "Cover your {s} summary sheet and rewrite it from memory",
+      "Go back over past mistakes in {s} and close the gaps",
+      "Mixed practice across all {s} topics"
     ]},
     { until: 1.01, tasks: [
-      "Final revision: skim your {f} summary sheet and key formulas",
-      "Light recall practice for {f} — no new material",
-      "Read over your weakest {f} notes one last time",
-      "Quick confidence check on {f}, then rest"
+      "Final revision: skim your {s} summary sheet and key formulas",
+      "Light recall practice for {s} — no new material",
+      "Read over your weakest {s} notes one last time",
+      "Quick confidence check on {s}, then rest"
     ]}
   ];
-  function taskFor(focus, progress, nth) {
+  function taskFor(subject, progress, nth) {
     var phase = PHASES[PHASES.length - 1];
     for (var i = 0; i < PHASES.length; i++) {
       if (progress < PHASES[i].until) { phase = PHASES[i]; break; }
     }
-    return phase.tasks[(nth - 1) % phase.tasks.length].replace("{f}", focus);
+    return phase.tasks[(nth - 1) % phase.tasks.length].replace("{s}", subject);
   }
 
+  // Split a day's minutes into 1-hour-ish blocks, on a 15-minute grid, never
+  // shorter than 30 minutes and never more blocks than there are subjects.
   function splitIntoBlocks(totalMinutes, subjectCount) {
     var n = Math.max(1, Math.round(totalMinutes / 60));
     n = Math.min(n, subjectCount, 4);
@@ -476,116 +351,50 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
 
   function generatePlan(settings) {
     var start = today();
-    var lastStudyDay = addDays(lastExamDate(settings), -1);
-    var subjects = settings.subjects;
-
-    // Minutes given to each subject so far. Blocks go to whichever eligible
-    // subject is furthest behind its share, so priority and a near exam pull
-    // time towards a subject without starving the others.
-    var served = {}, seen = {}, topicAt = {};
-    subjects.forEach(function (s) { served[s.name] = 0; seen[s.name] = 0; topicAt[s.name] = 0; });
-
-    function weightOn(subject, iso) {
-      var w = PRIORITY_WEIGHT[subject.priority] || 1;
-      var left = daysBetween(iso, examOf(subject, settings));
-      if (left <= URGENT_DAYS) w *= URGENT_BOOST;
-      return w;
-    }
-    function eligibleOn(iso) {
-      return subjects.filter(function (s) { return daysBetween(iso, examOf(s, settings)) > 0; });
-    }
-    // How far through this subject's own run-up we are, for the task wording.
-    function progressFor(subject, iso) {
-      var span = daysBetween(start, examOf(subject, settings));
-      if (span <= 1) return 1;
-      return Math.min(1, Math.max(0, daysBetween(start, iso) / (span - 1)));
-    }
-    function nextTopic(subject) {
-      if (!subject.topics.length) return null;
-      var topic = subject.topics[topicAt[subject.name] % subject.topics.length];
-      topicAt[subject.name]++;
-      return topic;
-    }
-
-    var days = [];
-    var mockCadence = settings.mocks === "weekly" ? 7 : settings.mocks === "fortnightly" ? 14 : 0;
-    var lastMock = null;
-
+    var lastStudyDay = addDays(settings.examDate, -1);
+    var shape = [];
     for (var iso = start; daysBetween(iso, lastStudyDay) >= 0; iso = addDays(iso, 1)) {
       var dow = fromISO(iso).getDay();
       var isWeekend = dow === 0 || dow === 6;
       var busy = settings.busyDays.indexOf(dow) !== -1;
-      var minutes = busy ? 0 : Math.round((isWeekend ? settings.weekendHours : settings.schoolHours) * 60);
-      var open = eligibleOn(iso);
+      var hours = busy ? 0 : (isWeekend ? settings.weekendHours : settings.schoolHours);
+      shape.push({ date: iso, dow: dow, isWeekend: isWeekend, busy: busy, minutes: Math.round(hours * 60) });
+    }
+
+    var studyDays = 0, i;
+    for (i = 0; i < shape.length; i++) if (shape[i].minutes >= 15) studyDays++;
+
+    var cursor = 0;              // rotates subjects evenly across the whole plan
+    var seen = {};               // how many sessions each subject has had so far
+    var studyIndex = 0;
+    var days = [];
+
+    for (i = 0; i < shape.length; i++) {
+      var day = shape[i];
       var blocks = [];
-
-      if (minutes >= 30 && open.length) {
-        // A mock sits on a weekend where possible, and goes to whichever
-        // subject's exam is closest — that is the one worth rehearsing.
-        var wantMock = mockCadence > 0 && minutes >= 60 &&
-          (lastMock === null || daysBetween(lastMock, iso) >= mockCadence) &&
-          (isWeekend || (lastMock !== null && daysBetween(lastMock, iso) >= mockCadence + 2));
-
-        if (wantMock) {
-          var soonest = open.slice().sort(function (a, b) {
-            return daysBetween(iso, examOf(a, settings)) - daysBetween(iso, examOf(b, settings));
-          })[0];
-          var mockMinutes = Math.min(minutes, 120);
+      var sizes = day.minutes >= 15 ? splitIntoBlocks(day.minutes, settings.subjects.length) : [];
+      if (sizes.length) {
+        var progress = studyDays > 1 ? studyIndex / (studyDays - 1) : 1;
+        for (var b = 0; b < sizes.length; b++) {
+          var subject = settings.subjects[cursor % settings.subjects.length];
+          cursor++;
+          seen[subject] = (seen[subject] || 0) + 1;
           blocks.push({
-            id: iso + "#0",
-            subject: soonest.name,
-            minutes: mockMinutes,
-            kind: "mock",
-            topic: null,
-            task: "Mock exam: sit a full past paper for " + soonest.name + " under timed conditions, then mark it"
+            id: day.date + "#" + b,
+            subject: subject,
+            minutes: sizes[b],
+            task: taskFor(subject, progress, seen[subject])
           });
-          served[soonest.name] += mockMinutes;
-          minutes -= mockMinutes;
-          lastMock = iso;
         }
-
-        var sizes = minutes >= 30 ? splitIntoBlocks(minutes, open.length) : [];
-        var usedToday = {};
-        sizes.forEach(function (size) {
-          var pool = open.filter(function (s) { return !usedToday[s.name]; });
-          if (!pool.length) pool = open;
-          var pick = pool[0], bestScore = Infinity;
-          pool.forEach(function (s) {
-            var score = served[s.name] / weightOn(s, iso);
-            if (score < bestScore) { bestScore = score; pick = s; }
-          });
-          usedToday[pick.name] = true;
-          served[pick.name] += size;
-          seen[pick.name]++;
-          var topic = nextTopic(pick);
-          blocks.push({
-            id: iso + "#" + blocks.length,
-            subject: pick.name,
-            minutes: size,
-            kind: "study",
-            topic: topic,
-            task: taskFor(topic || pick.name, progressFor(pick, iso), seen[pick.name])
-          });
-        });
+        studyIndex++;
       }
-
-      // An exam sitting today is worth showing on the day it happens.
-      var examsToday = subjects.filter(function (s) { return examOf(s, settings) === iso; })
-        .map(function (s) { return s.name; });
-
       days.push({
-        date: iso, dow: dow, isWeekend: isWeekend, busy: busy,
-        blocks: blocks, exams: examsToday
+        date: day.date, dow: day.dow, isWeekend: day.isWeekend,
+        busy: day.busy, blocks: blocks
       });
     }
 
-    return {
-      createdOn: start,
-      examDate: lastExamDate(settings),
-      days: days,
-      finalExams: subjects.filter(function (s) { return examOf(s, settings) === lastExamDate(settings); })
-        .map(function (s) { return s.name; })
-    };
+    return { createdOn: start, examDate: settings.examDate, days: days };
   }
 
   /* ----------------------------------------------------------- plan reads */
@@ -934,102 +743,6 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     } catch (e) { apply("denied"); }
   }
 
-  /* --------------------------------------------------- subject editor UI */
-  function subjectCardHTML(subject, index, settings) {
-    var expanded = state.openSubject === index;
-    var bits = [];
-    if (subject.priority !== "normal") bits.push(subject.priority === "high" ? "High priority" : "Low priority");
-    if (subject.examDate) bits.push("exam " + formatDate(subject.examDate));
-    if (subject.topics.length) bits.push(plural(subject.topics.length, "topic"));
-    if (subject.links.length) bits.push(plural(subject.links.length, "link"));
-
-    var html = '<li class="subject-card' + (expanded ? " open" : "") + '">' +
-      '<div class="subject-head">' +
-      '<button type="button" class="subject-name" data-open-subject="' + index + '" aria-expanded="' +
-      (expanded ? "true" : "false") + '">' + esc(subject.name) +
-      '<span class="small muted">' + (bits.length ? esc(bits.join(" · ")) : "Tap to add topics, priority or its own exam date") + "</span></button>" +
-      '<button type="button" class="drop" data-remove="' + index + '" aria-label="Remove ' + esc(subject.name) + '">&times;</button>' +
-      "</div>";
-
-    if (expanded) {
-      html += '<div class="subject-body">' +
-        '<div class="row">' +
-        '<label class="field">Priority<select data-priority="' + index + '">' +
-        ['low', 'normal', 'high'].map(function (p) {
-          return '<option value="' + p + '"' + (subject.priority === p ? " selected" : "") + ">" +
-            (p === "low" ? "Low — I'm solid" : p === "high" ? "High — I'm weak" : "Normal") + "</option>";
-        }).join("") + "</select></label>" +
-        '<label class="field">Its own exam date<span class="hint">Optional</span>' +
-        '<input type="date" data-subject-exam="' + index + '" value="' + esc(subject.examDate) + '"></label>' +
-        "</div>" +
-
-        '<label class="field">Topics<span class="hint">Comma separated. The plan works through these one at a time.</span>' +
-        '<input type="text" data-topics="' + index + '" value="' + esc(subject.topics.join(", ")) +
-        '" placeholder="e.g. Algebra, Trigonometry, Calculus"></label>' +
-
-        '<div class="field">Free material<span class="hint">Opens a search for this subject — nothing is stored or downloaded.</span></div>' +
-        '<div class="actions">' +
-        '<a class="btn small" target="_blank" rel="noopener" href="' + esc(practiceSearch(subject.name, subject.topics[0] || "")) + '">Practice questions</a>' +
-        '<a class="btn small" target="_blank" rel="noopener" href="' + esc(pastPaperSearch(subject.name)) + '">Past papers</a>' +
-        "</div>" +
-
-        '<div class="field">Your own links<span class="hint">A revision site, your teacher\'s folder, a PDF.</span></div>' +
-        (subject.links.length ? '<ul class="links">' + subject.links.map(function (l, li) {
-          return '<li><a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.label) + "</a>" +
-            '<button type="button" class="drop" data-remove-link="' + index + ':' + li + '" aria-label="Remove link">&times;</button></li>';
-        }).join("") + "</ul>" : "") +
-        '<div class="subject-add"><input type="text" data-link-input="' + index +
-        '" placeholder="Paste a link" inputmode="url"><button type="button" class="btn" data-add-link="' + index + '">Add</button></div>' +
-        "</div>";
-    }
-    return html + "</li>";
-  }
-
-  /* ------------------------------------------------------ backup/restore */
-  function exportData() {
-    var payload = JSON.stringify({
-      app: "study-planner", version: 2, exportedOn: today(),
-      settings: state.settings, plan: state.plan, done: state.done, reminders: state.reminders
-    }, null, 2);
-    var name = "study-plan-" + today() + ".json";
-    try {
-      var blob = new Blob([payload], { type: "application/json" });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
-      a.href = url; a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-      return true;
-    } catch (e) {
-      // Some in-app browsers block downloads; the clipboard is the fallback.
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(payload);
-          window.alert("Downloads are blocked here, so your backup was copied to the clipboard instead. Paste it somewhere safe.");
-          return true;
-        }
-      } catch (e2) {}
-      window.prompt("Copy this and keep it somewhere safe:", payload);
-      return true;
-    }
-  }
-
-  function importData(text) {
-    var parsed;
-    try { parsed = JSON.parse(text); } catch (e) { return "That file isn't a study planner backup."; }
-    if (!parsed || parsed.app !== "study-planner" || !parsed.settings) {
-      return "That file isn't a study planner backup.";
-    }
-    state.settings = migrateSettings(parsed.settings);
-    state.plan = parsed.plan || null;
-    state.done = parsed.done || {};
-    state.reminders = normalizeReminders(parsed.reminders);
-    save();
-    return null;
-  }
-
   /* ------------------------------------------------------------ rendering */
   var el = {
     tagline: document.getElementById("tagline"),
@@ -1048,11 +761,7 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     schoolHours: document.getElementById("schoolHours"),
     weekendHours: document.getElementById("weekendHours"),
     busyDays: document.getElementById("busyDays"),
-    formError: document.getElementById("formError"),
-    mocks: document.getElementById("mocks"),
-    freeSources: document.getElementById("freeSources"),
-    importFile: document.getElementById("importFile"),
-    importError: document.getElementById("importError")
+    formError: document.getElementById("formError")
   };
 
   function esc(s) {
@@ -1061,26 +770,11 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     });
   }
   function blockHTML(b) {
-    var subject = subjectNamed(b.subject);
-    var links = (subject && subject.links) || [];
-    var find = b.kind === "mock" ? pastPaperSearch(b.subject) : practiceSearch(b.subject, b.topic);
-    return '<li><label class="block' + (isDone(b.id) ? " done" : "") + (b.kind === "mock" ? " mock" : "") + '">' +
+    return '<li><label class="block' + (isDone(b.id) ? " done" : "") + '">' +
       '<input type="checkbox" data-block="' + esc(b.id) + '"' + (isDone(b.id) ? " checked" : "") + '>' +
       '<span class="body"><span class="line1"><span class="subject">' + esc(b.subject) + '</span>' +
-      (b.kind === "mock" ? '<span class="dur mock-tag">Mock exam</span>' : "") +
       '<span class="dur">' + formatDuration(b.minutes) + '</span></span>' +
-      '<span class="task">' + esc(b.task) + '</span></span></label>' +
-      '<span class="block-links">' +
-      '<a href="' + esc(find) + '" target="_blank" rel="noopener">' +
-      (b.kind === "mock" ? "Find a past paper" : "Find free practice") + "</a>" +
-      links.slice(0, 2).map(function (l) {
-        return '<a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.label) + "</a>";
-      }).join("") + "</span></li>";
-  }
-  function subjectNamed(name) {
-    var found = null;
-    (state.settings.subjects || []).forEach(function (s) { if (s.name === name) found = s; });
-    return found;
+      '<span class="task">' + esc(b.task) + '</span></span></label></li>';
   }
   function progressHTML(done, total) {
     var pct = total ? Math.round((done / total) * 100) : 0;
@@ -1205,13 +899,6 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     } else {
       html += shown.map(function (d) {
         var isToday = d.date === iso;
-        if (d.exams && d.exams.length) {
-          var head0 = '<div class="day"><div class="dayhead"><span class="dayname' + (isToday ? " today" : "") + '">' +
-            formatDate(d.date) + (isToday ? " · Today" : "") + '</span><span class="badge exam">' +
-            esc(d.exams.join(", ")) + " exam</span></div>";
-          if (!d.blocks.length) return head0 + "</div>";
-          return head0 + '<ul class="blocks">' + d.blocks.map(blockHTML).join("") + "</ul></div>";
-        }
         var head = '<div class="day"><div class="dayhead"><span class="dayname' + (isToday ? " today" : "") + '">' +
           formatDate(d.date) + (isToday ? " · Today" : "") + "</span>" + dayBadge(d) + "</div>";
         if (!d.blocks.length) {
@@ -1229,14 +916,10 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
 
   function renderSetup() {
     var s = state.settings;
-    el.subjectChips.innerHTML = s.subjects.map(function (subject, i) {
-      return subjectCardHTML(subject, i, s);
+    el.subjectChips.innerHTML = (s.subjects.length ? s.subjects : []).map(function (name, i) {
+      return '<li class="chip">' + esc(name) +
+        '<button type="button" data-remove="' + i + '" aria-label="Remove ' + esc(name) + '">×</button></li>';
     }).join("") || '<li class="small muted">No subjects added yet.</li>';
-    el.mocks.value = s.mocks;
-    el.freeSources.innerHTML = FREE_SOURCES.map(function (src) {
-      return '<li><a href="' + esc(src.url) + '" target="_blank" rel="noopener">' + esc(src.name) +
-        '</a><span class="small muted">' + esc(src.note) + "</span></li>";
-    }).join("");
 
     el.examDate.value = s.examDate || "";
     el.examDate.min = addDays(today(), 1);
@@ -1293,7 +976,7 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
   /* -------------------------------------------------------------- events */
   document.addEventListener("click", function (e) {
     var t = e.target;
-    var go = t.closest ? t.closest("[data-view], [data-go], [data-remove], [data-regenerate], [data-toggle-past], [data-add-time], [data-remove-time], [data-test-notify], [data-open-subject], [data-add-link], [data-remove-link]") : null;
+    var go = t.closest ? t.closest("[data-view], [data-go], [data-remove], [data-regenerate], [data-toggle-past], [data-add-time], [data-remove-time], [data-test-notify]") : null;
     if (!go) return;
 
     if (go.hasAttribute("data-view")) { show(go.getAttribute("data-view")); return; }
@@ -1308,33 +991,6 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     }
     if (go.hasAttribute("data-remove")) {
       state.settings.subjects.splice(Number(go.getAttribute("data-remove")), 1);
-      state.openSubject = -1;
-      save();
-      renderSetup();
-      return;
-    }
-    if (go.hasAttribute("data-open-subject")) {
-      var which = Number(go.getAttribute("data-open-subject"));
-      state.openSubject = state.openSubject === which ? -1 : which;
-      renderSetup();
-      return;
-    }
-    if (go.hasAttribute("data-add-link")) {
-      var si = Number(go.getAttribute("data-add-link"));
-      var field = document.querySelector('[data-link-input="' + si + '"]');
-      var url = field ? field.value.trim() : "";
-      if (url) {
-        if (!/^https?:\/\//i.test(url)) url = "https://" + url;
-        var label = url.replace(/^https?:\/\//i, "").replace(/^www\./i, "").split("/")[0];
-        state.settings.subjects[si].links.push({ label: label, url: url });
-        save();
-        renderSetup();
-      }
-      return;
-    }
-    if (go.hasAttribute("data-remove-link")) {
-      var parts = go.getAttribute("data-remove-link").split(":");
-      state.settings.subjects[Number(parts[0])].links.splice(Number(parts[1]), 1);
       save();
       renderSetup();
       return;
@@ -1393,25 +1049,6 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
       if (state.view === "today") renderToday(); else renderAll();
       return;
     }
-    if (box.matches && box.matches("[data-priority]")) {
-      state.settings.subjects[Number(box.getAttribute("data-priority"))].priority = box.value;
-      save();
-      renderSetup();
-      return;
-    }
-    if (box.matches && box.matches("[data-subject-exam]")) {
-      state.settings.subjects[Number(box.getAttribute("data-subject-exam"))].examDate = box.value || "";
-      save();
-      renderSetup();
-      return;
-    }
-    if (box.matches && box.matches("[data-topics]")) {
-      state.settings.subjects[Number(box.getAttribute("data-topics"))].topics = box.value
-        .split(",").map(function (t) { return t.trim().slice(0, 60); }).filter(Boolean).slice(0, MAX_TOPICS);
-      save();
-      renderSetup();
-      return;
-    }
     if (box.matches && box.matches("[data-reminder-toggle]")) {
       if (box.checked) {
         enableReminders();
@@ -1450,11 +1087,9 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
       var name = part.trim().replace(/\s+/g, " ");
       if (!name) return;
       if (state.settings.subjects.length >= MAX_SUBJECTS) return;
-      var exists = state.settings.subjects.some(function (s) {
-        return s.name.toLowerCase() === name.toLowerCase();
-      });
+      var exists = state.settings.subjects.some(function (s) { return s.toLowerCase() === name.toLowerCase(); });
       if (exists) return;
-      state.settings.subjects.push(makeSubject(name.slice(0, 40)));
+      state.settings.subjects.push(name.slice(0, 40));
       added++;
     });
     if (added) { save(); renderSetup(); }
@@ -1482,7 +1117,6 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
 
     var s = state.settings;
     s.examDate = el.examDate.value;
-    s.mocks = el.mocks.value;
     s.schoolHours = readNumber(el.schoolHours, 0);
     s.weekendHours = readNumber(el.weekendHours, 0);
     el.schoolHours.value = s.schoolHours;
@@ -1490,8 +1124,6 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
 
     var error = "";
     if (!s.subjects.length) error = "Add at least one subject.";
-    else if (s.subjects.some(function (x) { return x.examDate && daysBetween(today(), x.examDate) < 1; }))
-      error = "A subject has an exam date that isn't at least one day from today.";
     else if (!s.examDate) error = "Pick your exam date.";
     else if (daysBetween(today(), s.examDate) < 1) error = "Pick an exam date at least one day from today.";
     else if (s.schoolHours <= 0 && s.weekendHours <= 0) error = "Set study hours for school days, weekends, or both.";
@@ -1513,40 +1145,14 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     el.formError.hidden = false;
   });
 
-  document.getElementById("exportBtn").addEventListener("click", exportData);
-  document.getElementById("importBtn").addEventListener("click", function () { el.importFile.click(); });
-  el.importFile.addEventListener("change", function () {
-    var file = el.importFile.files && el.importFile.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function () {
-      var problem = importData(String(reader.result));
-      el.importError.hidden = !problem;
-      if (problem) { el.importError.textContent = problem; return; }
-      state.openSubject = -1;
-      show(state.plan ? "today" : "setup");
-    };
-    reader.onerror = function () {
-      el.importError.textContent = "That file could not be read.";
-      el.importError.hidden = false;
-    };
-    reader.readAsText(file);
-    el.importFile.value = "";
-  });
-
   document.getElementById("loadSample").addEventListener("click", function () {
-    state.settings = migrateSettings({
-      subjects: [
-        { name: "Math", priority: "high", topics: ["Algebra", "Trigonometry", "Calculus", "Statistics"] },
-        { name: "Physics", topics: ["Forces", "Energy", "Waves", "Electricity"] },
-        { name: "English", priority: "low", topics: ["Set text", "Poetry", "Essay technique"] }
-      ],
+    state.settings = {
+      subjects: ["Math", "Physics", "English"],
       examDate: addDays(today(), 21),
       schoolHours: 2,
       weekendHours: 4,
-      busyDays: [],
-      mocks: "weekly"
-    });
+      busyDays: []
+    };
     save();
     renderSetup();
   });
@@ -1561,10 +1167,7 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
   });
 
   function defaults() {
-    return {
-      subjects: [], examDate: addDays(today(), 21), schoolHours: 2, weekendHours: 4,
-      busyDays: [], mocks: "weekly"
-    };
+    return { subjects: [], examDate: addDays(today(), 21), schoolHours: 2, weekendHours: 4, busyDays: [] };
   }
 
   /* ---------------------------------------------------------------- init */
@@ -1611,90 +1214,7 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
   }
 })();
 </script>
-<script>
-/* Progressive web app plumbing: home-screen install and offline support.
-   Kept separate from the planner itself — if any of it is unavailable (an old
-   browser, a page opened from file://, storage blocked), the app still runs. */
-(function () {
-  "use strict";
 
-  var DISMISS_KEY = "study-planner.install-dismissed";
-  var bar = document.getElementById("installBar");
-  var installBtn = document.getElementById("installBtn");
-  var dismissBtn = document.getElementById("installDismiss");
-  var hint = document.getElementById("installHint");
-  var deferredPrompt = null;
-
-  function standalone() {
-    return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
-      window.navigator.standalone === true;
-  }
-  function dismissed() {
-    try { return localStorage.getItem(DISMISS_KEY) === "1"; } catch (e) { return false; }
-  }
-  function remember() {
-    try { localStorage.setItem(DISMISS_KEY, "1"); } catch (e) {}
-  }
-  function hide() { bar.hidden = true; }
-
-  // Chromium-based browsers: hold on to the event and offer a real install button.
-  // The install bar is meaningless inside the installed Android app.
-  if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) return;
-
-  window.addEventListener("beforeinstallprompt", function (e) {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (!standalone() && !dismissed()) bar.hidden = false;
-  });
-
-  installBtn.addEventListener("click", function () {
-    if (!deferredPrompt) { hide(); return; }
-    var prompt = deferredPrompt;
-    deferredPrompt = null;
-    prompt.prompt();
-    var choice = prompt.userChoice;
-    if (choice && choice.then) {
-      choice.then(function (result) {
-        if (result && result.outcome === "dismissed") remember();
-        hide();
-      })["catch"](hide);
-    } else {
-      hide();
-    }
-  });
-
-  dismissBtn.addEventListener("click", function () {
-    remember();
-    hide();
-  });
-
-  window.addEventListener("appinstalled", function () {
-    deferredPrompt = null;
-    hide();
-  });
-
-  // iOS Safari has no install event, so it gets the manual instructions instead.
-  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  var isSafari = /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS|Chrome/.test(navigator.userAgent);
-  if (isIOS && isSafari && !standalone() && !dismissed()) {
-    installBtn.hidden = true;
-    hint.textContent = "Tap the Share button, then “Add to Home Screen”. It then opens full screen and works offline.";
-    bar.hidden = false;
-  }
-
-  // The service worker needs http(s); opened straight from disk the app simply
-  // runs without it (it has no network dependencies anyway).
-  // Inside the Android app the assets are already local and the app updates as a
-  // whole, so a caching worker there would only serve stale files.
-  var nativeShell = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-  if (!nativeShell && "serviceWorker" in navigator && /^https?:$/.test(window.location.protocol)) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("sw.js", { scope: "./" })["catch"](function () {});
-    });
-  }
-})();
-</script>
 
 </body>
 </html>
