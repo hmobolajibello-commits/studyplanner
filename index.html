@@ -49,7 +49,7 @@ h1{margin:0; font-size:24px; letter-spacing:-.02em}
   background:linear-gradient(var(--bg) 70%, transparent);
 }
 .tabs button{
-  flex:1; min-height:44px; padding:10px 8px; font:inherit; font-weight:600; font-size:15px;
+  flex:1; min-height:44px; padding:10px 4px; font:inherit; font-weight:600; font-size:14px;
   color:var(--muted); background:var(--card); border:1px solid var(--line);
   border-radius:11px; cursor:pointer;
 }
@@ -102,8 +102,8 @@ h1{margin:0; font-size:24px; letter-spacing:-.02em}
 .totals .bar > i{display:block; height:100%; background:var(--accent); opacity:.75}
 
 /* Form */
-label.field{display:block; margin:14px 0 0; font-size:14px; font-weight:600}
-label.field .hint{display:block; font-weight:400; color:var(--muted); margin-top:2px}
+.field{display:block; margin:14px 0 0; font-size:14px; font-weight:600}
+.field .hint{display:block; font-weight:400; color:var(--muted); margin-top:2px}
 input[type="text"], input[type="number"], input[type="date"]{
   width:100%; margin-top:6px; padding:11px 12px; font:inherit; font-size:16px; color:var(--ink);
   background:var(--card-2); border:1px solid var(--line); border-radius:10px; min-height:44px;
@@ -133,10 +133,25 @@ button{font:inherit}
 .install strong{display:block}
 .install .install-actions{display:flex; gap:8px; align-items:center; flex:none}
 footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--muted)}
+/* Reminders */
+.switch{display:flex; gap:12px; align-items:flex-start; padding:12px; margin-top:12px; border:1px solid var(--line-soft); border-radius:12px; background:var(--card-2); cursor:pointer}
+.switch input{flex:none; width:22px; height:22px; margin:1px 0 0; accent-color:var(--accent); cursor:pointer}
+.switch strong{display:block}
+.times{list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:8px}
+.times li{display:flex; gap:8px; align-items:center}
+.times input[type="time"]{margin-top:0; flex:1}
+.times .drop{flex:none; width:44px; min-height:44px; padding:0; font-size:18px; line-height:1; border:1px solid var(--line); border-radius:10px; background:var(--card-2); color:var(--muted); cursor:pointer}
+.times .drop:hover{color:var(--danger); border-color:var(--danger)}
+.notice{margin-top:12px; padding:12px 14px; border-radius:10px; font-size:14px; border-left:4px solid var(--muted); background:var(--card-2); color:var(--muted)}
+.notice.warn{border-left-color:var(--warn); background:var(--warn-soft); color:var(--warn)}
+.notice.bad{border-left-color:var(--danger); background:var(--warn-soft); color:var(--danger)}
+.notice strong{display:block; margin-bottom:2px}
+.notice ol{margin:6px 0 0; padding-left:20px}
+.status{font-weight:650; font-size:15px}
 .error{margin-top:12px; color:var(--danger); font-size:14px; font-weight:600}
 .actions{display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-top:16px}
 [hidden]{display:none !important}
-@media (max-width:420px){ h1{font-size:21px} .card{padding:14px} }
+@media (max-width:420px){ h1{font-size:21px} .card{padding:14px} .tabs button{font-size:13px} }
 </style>
 </head>
 <body>
@@ -150,6 +165,7 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
     <button role="tab" id="tab-today" aria-controls="view-today" aria-selected="true" data-view="today">Today <span class="dot" id="todayCount" hidden></span></button>
     <button role="tab" id="tab-all" aria-controls="view-all" aria-selected="false" data-view="all">All days</button>
     <button role="tab" id="tab-setup" aria-controls="view-setup" aria-selected="false" data-view="setup">Setup</button>
+    <button role="tab" id="tab-reminders" aria-controls="view-reminders" aria-selected="false" data-view="reminders">Reminders <span class="dot" id="remindersDot" hidden>on</span></button>
   </nav>
 
   <div class="card install" id="installBar" hidden>
@@ -169,6 +185,8 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
 
     <!-- ALL DAYS -->
     <section id="view-all" role="tabpanel" aria-labelledby="tab-all" hidden></section>
+
+  <section id="view-reminders" role="tabpanel" aria-labelledby="tab-reminders" hidden></section>
 
     <!-- SETUP -->
     <section id="view-setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
@@ -261,7 +279,7 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
   function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
 
   /* ------------------------------------------------------------- storage */
-  var state = { settings: null, plan: null, done: {}, view: "today", showPast: false };
+  var state = { settings: null, plan: null, done: {}, reminders: null, view: "today", showPast: false };
 
   function load() {
     try {
@@ -273,12 +291,13 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
         state.plan = saved.plan || null;
         state.done = saved.done || {};
       }
+      if (saved) state.reminders = normalizeReminders(saved.reminders);
     } catch (e) { /* corrupt or unavailable storage: start fresh */ }
   }
   function save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        settings: state.settings, plan: state.plan, done: state.done
+        settings: state.settings, plan: state.plan, done: state.done, reminders: state.reminders
       }));
     } catch (e) { /* private mode / quota: the app still works for this session */ }
   }
@@ -403,14 +422,252 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
     state.done = live;
   }
 
+  /* ------------------------------------------------------------ reminders */
+  // No backend means no push server, so reminders are what the browser can do
+  // on its own: while the app is open (or open in a background tab) a timer
+  // fires each reminder time, and a time that passed while the app was closed
+  // fires on the next launch if it is still recent. Each time fires at most
+  // once a day. The UI says this plainly rather than promising more.
+
+  var MAX_TIMES = 3;
+  var GRACE_MINUTES = 240;   // a missed reminder older than this is dropped, not fired late
+  var CHECK_EVERY_MS = 30000;
+
+  // A second reminder defaults to two hours after the last one rather than to
+  // another 18:00, which would sit there looking like a bug.
+  function nextFreeTime(times) {
+    var last = times.length ? times[times.length - 1] : "18:00";
+    var parts = last.split(":");
+    var minutes = Number(parts[0]) * 60 + Number(parts[1]);
+    for (var step = 0; step < 24; step++) {
+      minutes = (minutes + 120) % 1440;
+      var candidate = String(Math.floor(minutes / 60)).padStart(2, "0") + ":" +
+        String(minutes % 60).padStart(2, "0");
+      if (times.indexOf(candidate) === -1) return candidate;
+    }
+    return "18:00";
+  }
+
+  function reminderDefaults() {
+    return { enabled: false, times: ["18:00"], fired: {} };
+  }
+  function normalizeReminders(r) {
+    var out = reminderDefaults();
+    if (!r || typeof r !== "object") return out;
+    out.enabled = r.enabled === true;
+    if (Array.isArray(r.times)) {
+      out.times = r.times.filter(function (t) { return /^([01]\d|2[0-3]):[0-5]\d$/.test(t); }).slice(0, MAX_TIMES);
+    }
+    out.times = out.times.filter(function (t, i) { return out.times.indexOf(t) === i; });
+    if (!out.times.length) out.times = ["18:00"];
+    out.fired = (r.fired && typeof r.fired === "object") ? r.fired : {};
+    return out;
+  }
+
+  // "Supported" has three interesting shapes: fine, no API at all, and iOS
+  // Safari in a browser tab — where notifications exist only once the app has
+  // been added to the Home Screen.
+  function notifySupport() {
+    if (typeof Notification !== "undefined" && "serviceWorker" in navigator) return "ok";
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+      window.navigator.standalone === true;
+    if (isIOS && !standalone) return "ios-install-first";
+    return "unsupported";
+  }
+  function permissionState() {
+    return notifySupport() === "ok" ? Notification.permission : "unsupported";
+  }
+
+  function formatTime(hhmm) {
+    var p = hhmm.split(":");
+    var d = new Date();
+    d.setHours(Number(p[0]), Number(p[1]), 0, 0);
+    return d.toLocaleTimeString("en", { hour: "numeric", minute: "2-digit" });
+  }
+  function listJoin(items) {
+    if (items.length < 2) return items.join("");
+    return items.slice(0, -1).join(", ") + " and " + items[items.length - 1];
+  }
+
+  // What today still asks of you — the notification body is built from this.
+  function todaySummary() {
+    var day = state.plan ? dayFor(state.plan, today()) : null;
+    if (!day) return { remaining: 0, subjects: [] };
+    var subjects = [], remaining = 0;
+    day.blocks.forEach(function (b) {
+      if (isDone(b.id)) return;
+      remaining++;
+      if (subjects.indexOf(b.subject) === -1) subjects.push(b.subject);
+    });
+    return { remaining: remaining, subjects: subjects };
+  }
+
+  function showNotification(title, body, tag) {
+    var options = {
+      body: body,
+      tag: tag || "study-reminder",
+      icon: "icons/icon-192.png",
+      badge: "icons/icon-192.png",
+      lang: "en",
+      renotify: false,
+      requireInteraction: false
+    };
+    // Android Chrome refuses `new Notification()`, so go through the service
+    // worker whenever one is running and only fall back on desktop.
+    if ("serviceWorker" in navigator && navigator.serviceWorker.getRegistration) {
+      return navigator.serviceWorker.getRegistration().then(function (reg) {
+        if (reg && reg.showNotification) return reg.showNotification(title, options);
+        return new Notification(title, options);
+      })["catch"](function () {
+        try { new Notification(title, options); } catch (e) {}
+      });
+    }
+    try { new Notification(title, options); } catch (e) {}
+    return Promise.resolve();
+  }
+
+  function firedKey(iso, hhmm) { return iso + "|" + hhmm; }
+  function pruneFired() {
+    var iso = today(), kept = {};
+    Object.keys(state.reminders.fired).forEach(function (k) {
+      if (k.indexOf(iso + "|") === 0) kept[k] = true;
+    });
+    state.reminders.fired = kept;
+  }
+
+  // Runs on load, on every return to the tab, and on a timer while the app is
+  // open. Silent unless a reminder is genuinely due and there is work left.
+  function checkReminders() {
+    var r = state.reminders;
+    if (!r.enabled || permissionState() !== "granted") return;
+
+    pruneFired();
+    var iso = today();
+    var now = new Date();
+    var changed = false;
+
+    r.times.forEach(function (hhmm) {
+      var key = firedKey(iso, hhmm);
+      if (r.fired[key]) return;
+
+      var parts = hhmm.split(":");
+      var due = new Date();
+      due.setHours(Number(parts[0]), Number(parts[1]), 0, 0);
+      if (now < due) return;
+
+      // Mark it done either way: a reminder is for today, not for whenever the
+      // app next happens to open.
+      r.fired[key] = true;
+      changed = true;
+
+      var lateBy = (now - due) / 60000;
+      if (lateBy > GRACE_MINUTES) return;
+
+      var summary = todaySummary();
+      if (!summary.remaining) return;   // rest day, or everything already ticked
+
+      var subjects = summary.subjects.slice(0, 3);
+      var body = "You have " + plural(summary.remaining, "task") + " left today in " +
+        listJoin(subjects) + (summary.subjects.length > 3 ? " and more" : "") +
+        ". Open the app to see your plan.";
+      showNotification("Time to study!", body, "study-reminder-" + hhmm);
+    });
+
+    if (changed) save();
+  }
+
+  function reminderStatusText() {
+    var r = state.reminders;
+    if (!r.enabled) return "Reminders are off.";
+    if (permissionState() !== "granted") return "Reminders are on, but this browser is not allowing notifications.";
+    return "Reminders enabled for " + listJoin(r.times.slice().sort().map(formatTime)) + ".";
+  }
+
+  function renderReminders() {
+    var r = state.reminders;
+    var support = notifySupport();
+    var perm = permissionState();
+    var html = '<div class="card"><h2>Reminders</h2>' +
+      '<p class="muted small">A nudge at the time you pick, listing what today still asks of you.</p>' +
+      '<p class="status">' + esc(reminderStatusText()) + "</p>";
+
+    if (support === "ios-install-first") {
+      html += '<div class="notice warn"><strong>Add the app to your Home Screen first</strong>' +
+        "On iPhone and iPad, notifications only work once the app is installed. Tap the Share " +
+        "button, then <b>Add to Home Screen</b>, and open it from there.</div>";
+    } else if (support === "unsupported") {
+      html += '<div class="notice bad"><strong>This browser can\'t show notifications</strong>' +
+        "Everything else in the app still works. Try a recent version of Chrome, Edge, Firefox or Safari.</div>";
+    } else {
+      html += '<label class="switch"><input type="checkbox" data-reminder-toggle' +
+        (r.enabled ? " checked" : "") + '>' +
+        "<span><strong>Enable study reminders</strong>" +
+        '<span class="small muted">We\'ll send a daily reminder to study at the time you choose. ' +
+        "Nothing leaves your device.</span></span></label>";
+
+      if (perm === "denied") {
+        html += '<div class="notice bad"><strong>Notifications are blocked</strong>' +
+          "Your browser is refusing them, so the app can't ask again. To turn them back on:" +
+          "<ol><li><b>Android / Chrome:</b> tap the lock or ⋮ icon next to the address bar → " +
+          "Site settings → Notifications → Allow.</li>" +
+          "<li><b>iPhone / iPad:</b> Settings → Notifications → Study Planner → Allow Notifications.</li>" +
+          "<li><b>Desktop:</b> click the icon left of the address bar → Notifications → Allow.</li></ol></div>";
+      }
+
+      if (r.enabled && perm === "granted") {
+        html += '<div class="field">Reminder times<span class="hint">Up to ' + MAX_TIMES +
+          " a day.</span></div>";
+        html += '<ul class="times">' + r.times.map(function (t, i) {
+          return '<li><input type="time" value="' + esc(t) + '" data-time-index="' + i +
+            '" aria-label="Reminder time ' + (i + 1) + '">' +
+            (r.times.length > 1 ? '<button type="button" class="drop" data-remove-time="' + i +
+              '" aria-label="Remove this reminder time">&times;</button>' : "") + "</li>";
+        }).join("") + "</ul>";
+        html += '<div class="actions">';
+        if (r.times.length < MAX_TIMES) {
+          html += '<button type="button" class="btn small" data-add-time="1">Add another time</button>';
+        }
+        html += '<button type="button" class="btn small" data-test-notify="1">Send a test</button></div>';
+        html += '<div class="notice"><strong>Open the app once a day</strong>' +
+          "A website can't wake your phone on its own. Reminders fire while the app is open, and a " +
+          "reminder you missed shows the next time you open it that day — so keep the app installed " +
+          "and look in daily.</div>";
+      }
+    }
+
+    html += "</div>";
+    el.views.reminders.innerHTML = html;
+  }
+
+  // Turning the toggle on is what asks for permission — never on page load.
+  function enableReminders() {
+    if (notifySupport() !== "ok") { render(); return; }
+    var apply = function (result) {
+      state.reminders.enabled = result === "granted";
+      save();
+      render();
+      if (result === "granted") checkReminders();
+    };
+    if (Notification.permission === "granted") { apply("granted"); return; }
+    if (Notification.permission === "denied") { apply("denied"); return; }
+    try {
+      var ask = Notification.requestPermission(function (result) { apply(result); });
+      if (ask && ask.then) ask.then(apply)["catch"](function () { apply("denied"); });
+    } catch (e) { apply("denied"); }
+  }
+
   /* ------------------------------------------------------------ rendering */
   var el = {
     tagline: document.getElementById("tagline"),
     todayCount: document.getElementById("todayCount"),
+    remindersDot: document.getElementById("remindersDot"),
     views: {
       today: document.getElementById("view-today"),
       all: document.getElementById("view-all"),
-      setup: document.getElementById("view-setup")
+      setup: document.getElementById("view-setup"),
+      reminders: document.getElementById("view-reminders")
     },
     form: document.getElementById("setupForm"),
     subjectInput: document.getElementById("subjectInput"),
@@ -598,7 +855,11 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
     renderTagline();
     if (state.view === "today") renderToday();
     else if (state.view === "all") renderAll();
+    else if (state.view === "reminders") renderReminders();
     else renderSetup();
+
+    var remindersOn = state.reminders.enabled && permissionState() === "granted";
+    el.remindersDot.hidden = !remindersOn;
 
     Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (btn) {
       var on = btn.getAttribute("data-view") === state.view;
@@ -630,7 +891,7 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
   /* -------------------------------------------------------------- events */
   document.addEventListener("click", function (e) {
     var t = e.target;
-    var go = t.closest ? t.closest("[data-view], [data-go], [data-remove], [data-regenerate], [data-toggle-past]") : null;
+    var go = t.closest ? t.closest("[data-view], [data-go], [data-remove], [data-regenerate], [data-toggle-past], [data-add-time], [data-remove-time], [data-test-notify]") : null;
     if (!go) return;
 
     if (go.hasAttribute("data-view")) { show(go.getAttribute("data-view")); return; }
@@ -647,6 +908,31 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
       state.settings.subjects.splice(Number(go.getAttribute("data-remove")), 1);
       save();
       renderSetup();
+      return;
+    }
+    if (go.hasAttribute("data-add-time")) {
+      if (state.reminders.times.length < MAX_TIMES) {
+        state.reminders.times.push(nextFreeTime(state.reminders.times));
+        save();
+        renderReminders();
+      }
+      return;
+    }
+    if (go.hasAttribute("data-remove-time")) {
+      if (state.reminders.times.length > 1) {
+        state.reminders.times.splice(Number(go.getAttribute("data-remove-time")), 1);
+        save();
+        renderReminders();
+      }
+      return;
+    }
+    if (go.hasAttribute("data-test-notify")) {
+      var summary = todaySummary();
+      showNotification("Time to study!", summary.remaining
+        ? "You have " + plural(summary.remaining, "task") + " left today in " +
+          listJoin(summary.subjects.slice(0, 3)) + ". Open the app to see your plan."
+        : "Nothing left on today's plan — this is what a reminder will look like.",
+        "study-reminder-test");
     }
   });
 
@@ -661,6 +947,27 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
       var label = box.closest("label");
       if (label) label.classList.toggle("done", box.checked);
       if (state.view === "today") renderToday(); else renderAll();
+      return;
+    }
+    if (box.matches && box.matches("[data-reminder-toggle]")) {
+      if (box.checked) {
+        enableReminders();
+      } else {
+        state.reminders.enabled = false;
+        save();
+        render();
+      }
+      return;
+    }
+    if (box.matches && box.matches("[data-time-index]")) {
+      var idx = Number(box.getAttribute("data-time-index"));
+      if (/^([01]\d|2[0-3]):[0-5]\d$/.test(box.value)) {
+        state.reminders.times[idx] = box.value;
+        // A time moved to later today has not fired yet.
+        delete state.reminders.fired[firedKey(today(), box.value)];
+        save();
+        renderReminders();
+      }
       return;
     }
     if (box.matches && box.matches("[data-busy]")) {
@@ -766,6 +1073,7 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
   if (!state.settings) state.settings = defaults();
   if (!Array.isArray(state.settings.subjects)) state.settings.subjects = [];
   if (!Array.isArray(state.settings.busyDays)) state.settings.busyDays = [];
+  state.reminders = normalizeReminders(state.reminders);
   state.view = viewFromHash() || (state.plan ? "today" : "setup");
   render();
 
@@ -781,7 +1089,13 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
   var renderedOn = today();
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden && today() !== renderedOn) { renderedOn = today(); render(); }
+    if (!document.hidden) checkReminders();
   });
+
+  // A reminder due while the app sits open fires on the timer; one that came
+  // due while it was closed fires on this first check.
+  checkReminders();
+  setInterval(checkReminders, CHECK_EVERY_MS);
 })();
 </script>
 <script>

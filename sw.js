@@ -17,7 +17,7 @@
  * deleted on activate. Changing index.html alone needs no bump — the background
  * refresh above keeps it current.
  */
-var CACHE_VERSION = "v1";
+var CACHE_VERSION = "v2";
 var CACHE_NAME = "study-planner-" + CACHE_VERSION;
 var INDEX = "./index.html";
 var SHELL = [
@@ -111,6 +111,25 @@ self.addEventListener("fetch", function (event) {
           return response || Response.error();
         });
       });
+    })
+  );
+});
+
+// A reminder is only useful if tapping it lands you in the app. Focus a window
+// that is already open on this app, otherwise open one on the Today view.
+self.addEventListener("notificationclick", function (event) {
+  event.notification.close();
+  var target = new URL("./#today", self.location.href).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (windows) {
+      for (var i = 0; i < windows.length; i++) {
+        var client = windows[i];
+        if (client.url.indexOf(self.registration.scope) === 0) {
+          if ("navigate" in client) { try { client.navigate(target); } catch (e) {} }
+          if ("focus" in client) return client.focus();
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(target);
     })
   );
 });

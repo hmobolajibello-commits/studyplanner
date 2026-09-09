@@ -33,6 +33,13 @@ student's own device.
 - **All days** — the whole plan grouped by day, plus total hours per subject so you can see the split is fair
 - Tick a block on either view to mark it done; ticks are saved immediately
 
+**Reminders**
+- Toggle reminders on, and the app asks the browser for notification permission — never on load
+- Up to three reminder times a day, saved with everything else in `localStorage`
+- At the time you set: *"Time to study! You have 3 tasks left today in Math, Physics and English."*
+- Nothing fires on a rest day, or once you have ticked everything off
+- *Send a test* shows exactly what a reminder looks like
+
 **Changing things** — edit anything on the Setup tab and press *Generate my plan*. The plan
 rebuilds from today with whatever days are left, and blocks already ticked stay ticked.
 *Clear all saved data* removes everything from the device.
@@ -47,7 +54,7 @@ rebuilds from today with whatever days are left, and blocks already ticked stay 
 | --- | --- |
 | `index.html` | The whole app — markup, styles, planner logic, install prompt |
 | `manifest.webmanifest` | Name, icons, colours, standalone display, Today / All days shortcuts |
-| `sw.js` | Service worker: caches the app shell so it launches offline |
+| `sw.js` | Service worker: caches the app shell for offline, and opens the app when a reminder is tapped |
 | `icons/` | 192px and 512px icons, a maskable 512px icon, and a 180px Apple touch icon |
 | `_headers` | Cache and security headers for Netlify / Cloudflare Pages |
 | `netlify.toml` | Tells Netlify there is nothing to build and to publish the repo root |
@@ -96,6 +103,26 @@ On **iPhone and iPad**, Safari has no install event, so the same bar shows the m
 
 Once installed it launches full screen with no browser chrome, and long-pressing the icon
 gives shortcuts straight into **Today** or **All days**.
+
+## How reminders work, and what they cannot do
+
+There is no server here, so there is no push service to wake a sleeping phone. What the
+app does instead, entirely in the browser:
+
+- While the app is open — including in a background tab or minimised — a 30-second timer
+  fires each reminder time as it arrives.
+- A reminder whose time passed while the app was closed fires on the next launch that day,
+  as long as it is less than four hours late. Older than that and it is dropped rather than
+  arriving at midnight.
+- Each time fires at most once a day, recorded per date so a reload cannot repeat it.
+- Notifications go through `registration.showNotification()` whenever a service worker is
+  running, because Android Chrome refuses the plain `new Notification()` constructor.
+  Tapping one focuses an open window or opens the app on Today.
+
+The Reminders tab says this out loud rather than implying the app can nag you unprompted.
+On iPhone and iPad notifications work **only** once the app is added to the Home Screen
+(iOS 16.4+); in a plain Safari tab the tab explains that instead of offering a dead toggle.
+If notifications are blocked, it shows the per-platform steps to re-enable them.
 
 ## Offline
 
