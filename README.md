@@ -58,6 +58,10 @@ rebuilds from today with whatever days are left, and blocks already ticked stay 
 | `icons/` | 192px and 512px icons, a maskable 512px icon, and a 180px Apple touch icon |
 | `_headers` | Cache and security headers for Netlify / Cloudflare Pages |
 | `netlify.toml` | Tells Netlify there is nothing to build and to publish the repo root |
+| `package.json` | Capacitor dependencies and the build / sync scripts (the web app itself needs none) |
+| `capacitor.config.json` | App id, app name, and the `www` directory Capacitor packages |
+| `scripts/build-www.mjs` | Copies the app into `www/` for Capacitor — Node built-ins only |
+| `android/` | The generated Android project you open in Android Studio |
 | `vercel.json` | Same for Vercel: no framework, no build, serve the root, plus the headers |
 
 ## Deploying it
@@ -103,6 +107,36 @@ On **iPhone and iPad**, Safari has no install event, so the same bar shows the m
 
 Once installed it launches full screen with no browser chrome, and long-pressing the icon
 gives shortcuts straight into **Today** or **All days**.
+
+## Android app (Capacitor)
+
+The same `index.html` also ships as a native Android app. Capacitor wraps the web build in
+a WebView and gives it real OS-level notifications, so reminders fire with the app closed
+— the one thing the web version genuinely cannot do.
+
+```bash
+npm install          # once
+npm run build        # copies the app into www/
+npx cap sync android # copies www/ into the Android project and wires up plugins
+npx cap open android # opens it in Android Studio
+```
+
+`npm run android` does all three in one go. In Android Studio press **Run** for a device or
+emulator; **Build → Build Bundle(s) / APK(s) → Build APK(s)** produces
+`android/app/build/outputs/apk/debug/app-debug.apk`, and **Build → Generate Signed
+Bundle / APK → Android App Bundle** produces the `.aab` that Google Play wants.
+
+| Where | What to change |
+| --- | --- |
+| `capacitor.config.json` | App id (`com.mobolajibello.studyplanner`) and display name |
+| `android/app/build.gradle` | `versionCode` (an integer, +1 per upload) and `versionName` |
+| `android/app/src/main/res/values/strings.xml` | The name under the launcher icon |
+
+On native the app detects the Capacitor bridge and changes behaviour: reminders are handed
+to `@capacitor/local-notifications` (scheduled daily by Android, rescheduled whenever the
+times change, cancelled when the toggle goes off), the service worker is skipped since the
+assets are already local, and the install bar is hidden. `www/` and `node_modules/` are
+build artefacts and are not committed.
 
 ## How reminders work, and what they cannot do
 

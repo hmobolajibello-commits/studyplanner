@@ -1,0 +1,8 @@
+{
+  "appId": "com.mobolajibello.studyplanner",
+  "appName": "Study Planner",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#f4f6f8"
+  }
+}

@@ -1,0 +1,9 @@
+# The web deploy is the repo root; none of the Android tooling belongs on it.
+android/
+node_modules/
+scripts/
+www/
+docs/
+package.json
+package-lock.json
+capacitor.config.json

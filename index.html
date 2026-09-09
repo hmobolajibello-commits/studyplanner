@@ -422,6 +422,76 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
     state.done = live;
   }
 
+  /* -------------------------------------------------------- native bridge */
+  // Inside the Android app the page runs in a WebView, where the web
+  // Notification API does not exist — but Capacitor's LocalNotifications
+  // plugin does, and the OS schedules those, so reminders fire with the app
+  // fully closed. No bundler needed: the native bridge exposes plugins on
+  // window.Capacitor.Plugins at runtime.
+  function isNative() {
+    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  }
+  function localNotifications() {
+    var plugins = window.Capacitor && window.Capacitor.Plugins;
+    return (plugins && plugins.LocalNotifications) || null;
+  }
+
+  // Notification ids have to be stable so rescheduling replaces rather than
+  // duplicates: slot 0 -> 1001, slot 1 -> 1002, slot 2 -> 1003.
+  function nativeIdFor(index) { return 1001 + index; }
+
+  function nativeScheduleAll() {
+    var plugin = localNotifications();
+    if (!plugin) return Promise.resolve();
+    var r = state.reminders;
+    var ids = [];
+    for (var i = 0; i < MAX_TIMES; i++) ids.push({ id: nativeIdFor(i) });
+
+    return plugin.cancel({ notifications: ids })["catch"](function () {})
+      .then(function () {
+        if (!r.enabled) return null;
+        var list = r.times.map(function (hhmm, i) {
+          var parts = hhmm.split(":");
+          return {
+            id: nativeIdFor(i),
+            title: "Time to study!",
+            body: "Open the app to see what's on your plan today.",
+            schedule: {
+              // Fires every day at this wall-clock time, scheduled by Android
+              // itself, so it works with the app closed.
+              on: { hour: Number(parts[0]), minute: Number(parts[1]) },
+              allowWhileIdle: true
+            },
+            smallIcon: "ic_stat_icon_config_sample",
+            channelId: "study-reminders"
+          };
+        });
+        if (!list.length) return null;
+        return plugin.schedule({ notifications: list });
+      })["catch"](function () { /* a failed schedule must never break the app */ });
+  }
+
+  function nativeRequestPermission() {
+    var plugin = localNotifications();
+    if (!plugin) return Promise.resolve("denied");
+    return plugin.requestPermissions().then(function (result) {
+      return result && result.display === "granted" ? "granted" : "denied";
+    })["catch"](function () { return "denied"; });
+  }
+
+  // Android 8+ wants an explicit channel, or notifications arrive silently.
+  function nativeEnsureChannel() {
+    var plugin = localNotifications();
+    if (!plugin || !plugin.createChannel) return Promise.resolve();
+    return plugin.createChannel({
+      id: "study-reminders",
+      name: "Study reminders",
+      description: "Daily nudges to work through your study plan",
+      importance: 4,
+      visibility: 1
+    })["catch"](function () {});
+  }
+
   /* ------------------------------------------------------------ reminders */
   // No backend means no push server, so reminders are what the browser can do
   // on its own: while the app is open (or open in a background tab) a timer
@@ -468,6 +538,7 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
   // Safari in a browser tab — where notifications exist only once the app has
   // been added to the Home Screen.
   function notifySupport() {
+    if (isNative()) return localNotifications() ? "ok" : "unsupported";
     if (typeof Notification !== "undefined" && "serviceWorker" in navigator) return "ok";
     var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -476,7 +547,9 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
     if (isIOS && !standalone) return "ios-install-first";
     return "unsupported";
   }
+  var nativePermission = "default";   // refreshed from the plugin on load
   function permissionState() {
+    if (isNative()) return localNotifications() ? nativePermission : "unsupported";
     return notifySupport() === "ok" ? Notification.permission : "unsupported";
   }
 
@@ -541,6 +614,7 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
   // open. Silent unless a reminder is genuinely due and there is work left.
   function checkReminders() {
     var r = state.reminders;
+    if (isNative()) return;   // Android fires these itself, even with the app closed
     if (!r.enabled || permissionState() !== "granted") return;
 
     pruneFired();
@@ -630,10 +704,14 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
           html += '<button type="button" class="btn small" data-add-time="1">Add another time</button>';
         }
         html += '<button type="button" class="btn small" data-test-notify="1">Send a test</button></div>';
-        html += '<div class="notice"><strong>Open the app once a day</strong>' +
-          "A website can't wake your phone on its own. Reminders fire while the app is open, and a " +
-          "reminder you missed shows the next time you open it that day — so keep the app installed " +
-          "and look in daily.</div>";
+        html += isNative()
+          ? '<div class="notice"><strong>Scheduled on your phone</strong>' +
+            "Android delivers these on time whether or not the app is open."
+            + "</div>"
+          : '<div class="notice"><strong>Open the app once a day</strong>' +
+            "A website can't wake your phone on its own. Reminders fire while the app is open, and a " +
+            "reminder you missed shows the next time you open it that day — so keep the app installed " +
+            "and look in daily.</div>";
       }
     }
 
@@ -644,6 +722,16 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
   // Turning the toggle on is what asks for permission — never on page load.
   function enableReminders() {
     if (notifySupport() !== "ok") { render(); return; }
+    if (isNative()) {
+      nativeRequestPermission().then(function (result) {
+        nativePermission = result;
+        state.reminders.enabled = result === "granted";
+        save();
+        render();
+        if (result === "granted") nativeEnsureChannel().then(nativeScheduleAll);
+      });
+      return;
+    }
     var apply = function (result) {
       state.reminders.enabled = result === "granted";
       save();
@@ -914,6 +1002,7 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
       if (state.reminders.times.length < MAX_TIMES) {
         state.reminders.times.push(nextFreeTime(state.reminders.times));
         save();
+        if (isNative()) nativeScheduleAll();
         renderReminders();
       }
       return;
@@ -922,12 +1011,26 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
       if (state.reminders.times.length > 1) {
         state.reminders.times.splice(Number(go.getAttribute("data-remove-time")), 1);
         save();
+        if (isNative()) nativeScheduleAll();
         renderReminders();
       }
       return;
     }
     if (go.hasAttribute("data-test-notify")) {
       var summary = todaySummary();
+      if (isNative() && localNotifications()) {
+        localNotifications().schedule({ notifications: [{
+          id: 1099,
+          title: "Time to study!",
+          body: summary.remaining
+            ? "You have " + plural(summary.remaining, "task") + " left today in " +
+              listJoin(summary.subjects.slice(0, 3)) + "."
+            : "Nothing left on today's plan — this is what a reminder will look like.",
+          channelId: "study-reminders",
+          schedule: { at: new Date(Date.now() + 3000) }
+        }] })["catch"](function () {});
+        return;
+      }
       showNotification("Time to study!", summary.remaining
         ? "You have " + plural(summary.remaining, "task") + " left today in " +
           listJoin(summary.subjects.slice(0, 3)) + ". Open the app to see your plan."
@@ -955,6 +1058,7 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
       } else {
         state.reminders.enabled = false;
         save();
+        if (isNative()) nativeScheduleAll();
         render();
       }
       return;
@@ -966,6 +1070,7 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
         // A time moved to later today has not fired yet.
         delete state.reminders.fired[firedKey(today(), box.value)];
         save();
+        if (isNative()) nativeScheduleAll();
         renderReminders();
       }
       return;
@@ -1094,8 +1199,22 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
 
   // A reminder due while the app sits open fires on the timer; one that came
   // due while it was closed fires on this first check.
-  checkReminders();
-  setInterval(checkReminders, CHECK_EVERY_MS);
+  if (isNative() && localNotifications()) {
+    // The user can revoke notifications in Android settings at any time, so
+    // trust the plugin over what we last stored, then re-arm the schedule.
+    localNotifications().checkPermissions().then(function (result) {
+      nativePermission = (result && result.display) || "default";
+      if (nativePermission !== "granted" && state.reminders.enabled) {
+        state.reminders.enabled = false;
+        save();
+      }
+      render();
+      if (state.reminders.enabled) nativeEnsureChannel().then(nativeScheduleAll);
+    })["catch"](function () {});
+  } else {
+    checkReminders();
+    setInterval(checkReminders, CHECK_EVERY_MS);
+  }
 })();
 </script>
 <script>
@@ -1125,6 +1244,9 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
   function hide() { bar.hidden = true; }
 
   // Chromium-based browsers: hold on to the event and offer a real install button.
+  // The install bar is meaningless inside the installed Android app.
+  if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) return;
+
   window.addEventListener("beforeinstallprompt", function (e) {
     e.preventDefault();
     deferredPrompt = e;
@@ -1169,7 +1291,10 @@ footer.credit{margin:26px 0 6px; text-align:center; font-size:13px; color:var(--
 
   // The service worker needs http(s); opened straight from disk the app simply
   // runs without it (it has no network dependencies anyway).
-  if ("serviceWorker" in navigator && /^https?:$/.test(window.location.protocol)) {
+  // Inside the Android app the assets are already local and the app updates as a
+  // whole, so a caching worker there would only serve stale files.
+  var nativeShell = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  if (!nativeShell && "serviceWorker" in navigator && /^https?:$/.test(window.location.protocol)) {
     window.addEventListener("load", function () {
       navigator.serviceWorker.register("sw.js", { scope: "./" })["catch"](function () {});
     });
