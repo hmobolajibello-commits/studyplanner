@@ -164,7 +164,10 @@ sitting on Friday is in final revision while one three weeks out is still learni
 ## The classic version
 
 The original single-date planner is kept two ways: live at [`/classic/`](classic/), and as
-the `v1-classic` branch. Nothing in v2 removed a feature — subjects with no topics, no
+the `v1-classic` branch. The service worker deliberately serves the cached app shell only
+for the app's own address — any other page under the same scope, `/classic/` included, goes
+to the network first, or the worker would hand back the current app for a page that is
+meant to be a different one. Nothing in v2 removed a feature — subjects with no topics, no
 priority and no date of their own behave exactly as they did in v1, and saved v1 data is
 migrated on load.
 

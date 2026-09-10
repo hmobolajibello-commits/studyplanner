@@ -17,7 +17,7 @@
  * deleted on activate. Changing index.html alone needs no bump — the background
  * refresh above keeps it current.
  */
-var CACHE_VERSION = "v2";
+var CACHE_VERSION = "v3";
 var CACHE_NAME = "study-planner-" + CACHE_VERSION;
 var INDEX = "./index.html";
 var SHELL = [
@@ -85,6 +85,28 @@ self.addEventListener("fetch", function (event) {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
+    // The cached shell answers for the app's own address only. Other pages
+    // under the same scope — /classic/, the archived first version — must come
+    // from the network, or this worker would hand back the current app for a
+    // page that is deliberately a different one.
+    var appRoot = new URL("./", self.location.href).pathname;
+    if (url.pathname !== appRoot && url.pathname !== appRoot + "index.html") {
+      event.respondWith(
+        caches.open(CACHE_NAME).then(function (cache) {
+          return refresh(cache, request).then(function (response) {
+            if (response) return response;
+            return cache.match(request, { ignoreSearch: true }).then(function (cached) {
+              return cached || new Response(OFFLINE_FALLBACK, {
+                status: 200,
+                headers: { "Content-Type": "text/html; charset=utf-8" }
+              });
+            });
+          });
+        })
+      );
+      return;
+    }
+
     event.respondWith(
       caches.open(CACHE_NAME).then(function (cache) {
         return cache.match(INDEX).then(function (cached) {
