@@ -138,6 +138,32 @@ emulator; **Build → Build Bundle(s) / APK(s) → Build APK(s)** produces
 `android/app/build/outputs/apk/debug/app-debug.apk`, and **Build → Generate Signed
 Bundle / APK → Android App Bundle** produces the `.aab` that Google Play wants.
 
+### Shipping an update
+
+The website updates itself on every push. The Android app does not — it is whatever was
+last built, so each new version is these five steps:
+
+```bash
+git pull                    # 1. latest code
+npm run build               # 2. assemble www/
+npx cap sync android        # 3. copy www/ into the Android project  <- easy to forget
+                            # 4. raise versionCode in android/app/build.gradle
+                            # 5. Build > Generate Signed Bundle / APK > APK > release
+```
+
+Step 3 is the one that bites: skip it and Android Studio packages the previous build
+without complaining, producing an APK that looks new and isn't. To check what is really
+about to be packaged:
+
+```bash
+# roughly 80,000 for v2 — far less means the sync did not run
+wc -c android/app/src/main/assets/public/index.html
+```
+
+Step 4 is not optional either: Android refuses to install a build whose `versionCode` is
+not higher than the installed one. And always sign with the same keystore — a different key
+means "App not installed" and an uninstall that takes the user's saved plan with it.
+
 | Where | What to change |
 | --- | --- |
 | `capacitor.config.json` | App id (`com.mobolajibello.studyplanner`) and display name |
