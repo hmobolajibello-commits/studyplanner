@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Get Study Planner</title>
+<meta name="description" content="Download Study Planner for Android, or use it straight in your browser. Free, no account, works offline.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#10151b" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../icons/icon-192.png" type="image/png">
+<style>
+:root{
+  --bg:#f4f6f8; --card:#ffffff; --card-2:#f7f9fa; --ink:#161b22; --muted:#5c6874;
+  --line:#dfe4ea; --line-soft:#eaeef2; --accent:#2f6f5e; --accent-ink:#ffffff;
+  --accent-soft:#e6f1ed; --warn:#8a5a12; --warn-soft:#fdf2dd;
+  --shadow:0 1px 2px rgba(16,24,32,.05), 0 6px 18px rgba(16,24,32,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#10151b; --card:#171d25; --card-2:#1d242d; --ink:#e8edf2; --muted:#9aa7b4;
+    --line:#2a333e; --line-soft:#222a34; --accent:#5fbfa2; --accent-ink:#0d1418;
+    --accent-soft:#1b2b28; --warn:#e0b063; --warn-soft:#2b2415;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font:16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif}
+.wrap{max-width:640px; margin:0 auto; padding:28px 16px 64px}
+header{text-align:center; margin-bottom:22px}
+.mark{width:72px; height:72px; border-radius:16px; display:block; margin:0 auto 12px}
+h1{margin:0; font-size:26px; letter-spacing:-.02em}
+.tagline{margin:6px 0 0; color:var(--muted)}
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:18px; margin:14px 0}
+h2{margin:0 0 4px; font-size:18px; letter-spacing:-.01em}
+p{margin:8px 0}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.btn{display:block; text-align:center; text-decoration:none; padding:14px 18px; margin-top:14px;
+  border-radius:12px; font-weight:650; border:1px solid var(--line); background:var(--card-2); color:var(--ink)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.btn .sub{display:block; font-weight:400; font-size:13px; opacity:.85; margin-top:2px}
+ol{margin:10px 0 0; padding-left:22px}
+li{margin:6px 0}
+.note{border-left:4px solid var(--warn); background:var(--warn-soft); color:var(--warn);
+  padding:12px 14px; border-radius:10px; margin-top:14px; font-size:14px}
+.note strong{display:block}
+footer{text-align:center; color:var(--muted); font-size:13px; margin-top:26px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="mark" src="../icons/icon-192.png" alt="">
+    <h1>Study Planner</h1>
+    <p class="tagline">Turn your subjects, exam dates and free hours into a day-by-day plan.</p>
+  </header>
+
+  <div class="card">
+    <h2>Android app</h2>
+    <p class="muted small">Reminders arrive even with the app closed. Free, no account, works offline —
+      everything stays on your phone.</p>
+    <a class="btn primary" id="apk"
+       href="https://github.com/hmobolajibello-commits/studyplanner/releases/latest/download/study-planner.apk">
+      Download the APK
+      <span class="sub">Android 6.0 or newer</span>
+    </a>
+    <div class="note">
+      <strong>Android will warn you</strong>
+      It says "unknown apps" for anything not from the Play Store. Tap <b>Settings → Allow from this
+      source</b>, then <b>Install</b>. If Play Protect asks, choose <b>Install anyway</b>.
+    </div>
+    <ol class="small muted">
+      <li>Tap Download, then open the file from your notifications or Downloads folder.</li>
+      <li>Allow installs from your browser when asked.</li>
+      <li>Open it from your app drawer and set up your subjects.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Or use it in your browser</h2>
+    <p class="muted small">Nothing to install and it works on iPhone too. Add it to your home screen and it
+      opens full screen like an app, offline included.</p>
+    <a class="btn" href="../">Open the web app</a>
+    <p class="small muted">On Android: Chrome menu → <b>Add to Home screen</b>.
+      On iPhone: Share → <b>Add to Home Screen</b>.</p>
+  </div>
+
+  <footer>Made by Hakeem Mobolaji-Bello · <a href="../classic/">classic version</a></footer>
+</div>
+</body>
+</html>

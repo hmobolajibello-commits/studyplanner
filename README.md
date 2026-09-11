@@ -161,6 +161,25 @@ others being starved, and nothing is scheduled for an exam you have already sat.
 Task wording follows how close *that subject's* exam is, not the overall date, so a subject
 sitting on Friday is in final revision while one three weeks out is still learning.
 
+## Handing the app to someone
+
+[`/get/`](get/) is a download page: the Android app on one button, the web app on the other,
+and the install warnings Android shows explained before they appear.
+
+The APK itself belongs on **GitHub Releases**, not in this repo — binaries bloat git history
+forever, and releases carry them for free. Publish one with the asset named
+`study-planner.apk` and the page's button needs no editing: it points at
+`releases/latest/download/study-planner.apk`, which always resolves to the newest release.
+
+To cut a release: **Releases → Draft a new release → Choose a tag** (e.g. `v2.0`) → attach the
+APK renamed to `study-planner.apk` → Publish.
+
+Build the APK you hand out from **Build → Generate Signed Bundle / APK → APK → release**, not
+the debug one. Debug APKs are signed with a throwaway key, and Android refuses to update an
+app whose signing key changed — so a debug build you shared cannot be upgraded later, only
+uninstalled and reinstalled. Keep the keystore you create; it is the only thing that can ever
+update that app.
+
 ## The classic version
 
 The original single-date planner is kept two ways: live at [`/classic/`](classic/), and as
