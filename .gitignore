@@ -17,3 +17,8 @@ android/app/src/main/assets/capacitor.plugins.json
 *.jks
 *.keystore
 keystore.properties
+
+# Android Studio scratch and build output — the APK you hand out belongs on
+# GitHub Releases, not in git history.
+android/.idea/
+android/app/release/
