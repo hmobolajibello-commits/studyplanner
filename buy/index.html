@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Study Planner Pro</title>
-<meta name="description" content="Unlock per-subject exam dates, priority, mock exams and backup in Study Planner. One payment, no subscription, no account.">
+<title>Study Planner Pro — the waitlist</title>
+<meta name="description" content="Four extra controls coming to Study Planner: per-subject exam dates, priority, mock exams and backup. Join the list and I will email you when it opens.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#10151b" media="(prefers-color-scheme: dark)">
@@ -13,14 +13,14 @@
 :root{
   --bg:#f4f6f8; --card:#ffffff; --card-2:#f7f9fa; --ink:#161b22; --muted:#5c6874;
   --line:#dfe4ea; --line-soft:#eaeef2; --accent:#2f6f5e; --accent-ink:#ffffff;
-  --accent-soft:#e6f1ed; --warn:#8a5a12; --warn-soft:#fdf2dd;
+  --accent-soft:#e6f1ed; --warn:#8a5a12; --warn-soft:#fdf2dd; --danger:#a4342a;
   --shadow:0 1px 2px rgba(16,24,32,.05), 0 6px 18px rgba(16,24,32,.05);
 }
 @media (prefers-color-scheme: dark){
   :root{
     --bg:#10151b; --card:#171d25; --card-2:#1d242d; --ink:#e8edf2; --muted:#9aa7b4;
     --line:#2a333e; --line-soft:#222a34; --accent:#5fbfa2; --accent-ink:#0d1418;
-    --accent-soft:#1b2b28; --warn:#e0b063; --warn-soft:#2b2415;
+    --accent-soft:#1b2b28; --warn:#e0b063; --warn-soft:#2b2415; --danger:#e88b7f;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
   }
 }
@@ -38,23 +38,30 @@ h2{margin:0 0 4px; font-size:18px; letter-spacing:-.01em}
 p{margin:8px 0}
 .muted{color:var(--muted)}
 .small{font-size:14px}
-.btn{display:block; text-align:center; text-decoration:none; padding:14px 18px; margin-top:14px;
-  border-radius:12px; font-weight:650; border:1px solid var(--line); background:var(--card-2); color:var(--ink)}
+.field{display:block; margin:14px 0 0; font-weight:600; font-size:15px}
+.field .hint{display:block; font-weight:400; font-size:13px; color:var(--muted); margin-top:2px}
+input[type=email], input[type=text]{
+  display:block; width:100%; margin-top:6px; padding:12px 14px; font:inherit;
+  color:var(--ink); background:var(--card-2); border:1px solid var(--line); border-radius:10px}
+input:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btn{display:block; width:100%; text-align:center; text-decoration:none; padding:14px 18px; margin-top:16px;
+  border-radius:12px; font:inherit; font-weight:650; cursor:pointer;
+  border:1px solid var(--line); background:var(--card-2); color:var(--ink)}
 .btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.btn:disabled{opacity:.55; cursor:not-allowed}
 .btn .sub{display:block; font-weight:400; font-size:13px; opacity:.85; margin-top:2px}
-.price{display:flex; align-items:baseline; gap:10px; margin:6px 0 0}
-.price .amount{font-size:34px; font-weight:700; letter-spacing:-.03em}
-.price .note{color:var(--muted); font-size:14px}
+.msg{margin-top:14px; padding:12px 14px; border-radius:10px; font-size:14px}
+.msg.ok{border-left:4px solid var(--accent); background:var(--accent-soft); color:var(--ink)}
+.msg.bad{border-left:4px solid var(--danger); background:var(--warn-soft); color:var(--danger)}
 ul.plain{margin:8px 0 0; padding-left:20px; font-size:15px}
 ul.plain li{margin:6px 0}
 .free{border-left:4px solid var(--accent); background:var(--accent-soft); padding:12px 14px;
   border-radius:10px; margin-top:14px; font-size:14px}
-ol{margin:10px 0 0; padding-left:22px}
-li{margin:6px 0}
+label.check{display:flex; gap:10px; align-items:flex-start; margin-top:12px; font-size:14px; font-weight:400; color:var(--muted)}
+label.check input{margin:3px 0 0; flex:none}
 footer{text-align:center; color:var(--muted); font-size:13px; margin-top:26px}
 a{color:var(--accent)}
-details{margin-top:12px; font-size:14px}
-summary{cursor:pointer; font-weight:600}
+.hp{position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden}
 </style>
 </head>
 <body>
@@ -62,25 +69,46 @@ summary{cursor:pointer; font-weight:600}
   <header>
     <img class="mark" src="../icons/icon-192.png" alt="">
     <h1>Study Planner Pro</h1>
-    <p class="tagline">Four extra controls on the planner you already have.</p>
+    <p class="tagline">Four extra controls, coming to the planner you already have.</p>
   </header>
 
   <div class="card">
-    <h2>One payment, kept forever</h2>
-    <div class="price">
-      <span class="amount">&pound;4</span>
-      <span class="note">once &middot; no subscription &middot; no account</span>
-    </div>
-    <a class="btn primary" id="checkout" href="#">
-      Unlock Pro
-      <span class="sub">Card, Apple Pay or PayPal &middot; instant key by email</span>
-    </a>
-    <p class="small muted" id="checkoutNote">After paying you get a licence key by email. Paste it into the
-      <b>Pro</b> tab of the app and the extras unlock on that device.</p>
+    <h2>Not on sale yet &mdash; join the list</h2>
+    <p class="muted small">I am still at school, so I cannot take payments yet. Leave your email and you will be
+      the first to know when Pro opens. It will be a small one-off price, no subscription.</p>
+
+    <form id="waitlist" novalidate>
+      <!-- Web3Forms posts this straight to the inbox. The access key is a public
+           alias for an email address, not a secret, so it belongs in the page. -->
+      <input type="hidden" name="access_key" value="WEB3FORMS_ACCESS_KEY">
+      <input type="hidden" name="subject" value="Study Planner Pro waitlist">
+      <input type="hidden" name="from_name" value="Study Planner Pro">
+      <input type="hidden" name="page" value="/buy/">
+      <!-- Bot trap: a real person never sees this, so anything in it is a bot. -->
+      <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <label class="field" for="email">Your email
+        <span class="hint">Only used to tell you when Pro opens. Nothing else, ever.</span>
+      </label>
+      <input type="email" id="email" name="email" required autocomplete="email"
+             inputmode="email" placeholder="you@example.com">
+
+      <label class="field" for="want">What would you use it for? <span class="hint">Optional &mdash; helps me know what to build first.</span></label>
+      <input type="text" id="want" name="want" maxlength="200" autocomplete="off"
+             placeholder="e.g. my exams are in June">
+
+      <label class="check">
+        <input type="checkbox" name="student" value="yes">
+        <span>I am a student using Study Planner (or the parent of one)</span>
+      </label>
+
+      <button type="submit" class="btn primary" id="join">Join the list</button>
+      <div class="msg" id="msg" hidden role="status"></div>
+    </form>
   </div>
 
   <div class="card">
-    <h2>What you get</h2>
+    <h2>What Pro will add</h2>
     <ul class="plain">
       <li><b>Its own exam date per subject</b> &mdash; a subject you have already sat stops being scheduled, and
         the one sitting on Friday gets the last week.</li>
@@ -95,28 +123,9 @@ summary{cursor:pointer; font-weight:600}
   </div>
 
   <div class="card">
-    <h2>How the key works</h2>
-    <ol class="small">
-      <li>Pay here. Your key arrives by email within a minute, usually immediately.</li>
-      <li>Open Study Planner, go to the <b>Pro</b> tab, paste the key, press <b>Unlock</b>.</li>
-      <li>It is checked with the store once. After that the app works offline exactly as before &mdash; the key is
-        stored on your own device, and no plan or study data ever leaves it.</li>
-    </ol>
-    <details>
-      <summary>Lost the key, or it will not go through?</summary>
-      <p class="small muted">Email <a href="mailto:hmobolajibello@gmail.com?subject=Study%20Planner%20Pro">hmobolajibello@gmail.com</a>
-        with the address you paid with and I will resend it. Refunds are fine within 14 days, no questions.</p>
-    </details>
-    <details>
-      <summary>One key on more than one device?</summary>
-      <p class="small muted">The key allows a small number of activations, so your phone and a spare are both fine.
-        If you run out, email me.</p>
-    </details>
-  </div>
-
-  <div class="card">
-    <h2>Not sure yet?</h2>
-    <p class="muted small">Use the whole free app first &mdash; it is not a trial and nothing expires.</p>
+    <h2>Use it now anyway</h2>
+    <p class="muted small">The free app is not a trial and nothing expires. The four extras above are the only
+      things on the list.</p>
     <a class="btn" href="../">Open the free app</a>
     <a class="btn" href="../get/">Get the Android app</a>
   </div>
@@ -124,21 +133,70 @@ summary{cursor:pointer; font-weight:600}
   <footer>Made by Hakeem Mobolaji-Bello &middot; <a href="../classic/">classic version</a></footer>
 </div>
 <script>
-// One place to change the checkout link: set CHECKOUT_URL and every button on
-// this page, plus the one in the app, points at the same Lemon Squeezy product.
-// Until it is set the buttons say so rather than leading to a dead page.
 (function () {
-  var CHECKOUT_URL = "";
-  var btn = document.getElementById("checkout");
-  var note = document.getElementById("checkoutNote");
-  if (!CHECKOUT_URL) {
-    btn.removeAttribute("href");
-    btn.style.opacity = ".55";
-    btn.style.pointerEvents = "none";
-    note.textContent = "Checkout is not open yet.";
+  "use strict";
+
+  // One value to change. Get it at web3forms.com: enter an email, the key
+  // arrives by email. It is not a secret, so it is safe in the page source.
+  var ACCESS_KEY = "WEB3FORMS_ACCESS_KEY";
+
+  var form = document.getElementById("waitlist");
+  var msg = document.getElementById("msg");
+  var btn = document.getElementById("join");
+
+  function say(text, ok) {
+    msg.textContent = text;
+    msg.className = "msg " + (ok ? "ok" : "bad");
+    msg.hidden = false;
+  }
+
+  // Nothing is sent anywhere until the key is filled in, so an unfinished
+  // setup cannot silently swallow somebody's email address.
+  if (ACCESS_KEY === "WEB3FORMS_ACCESS_KEY") {
+    btn.disabled = true;
+    say("The list is not open yet \u2014 email hmobolajibello@gmail.com and I will add you by hand.", false);
     return;
   }
-  btn.href = CHECKOUT_URL;
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    var email = document.getElementById("email").value.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      say("That email address does not look right.", false);
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Adding you\u2026";
+
+    var data = Object.fromEntries(new FormData(form));
+    data.access_key = ACCESS_KEY;
+
+    fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(data)
+    })
+      .then(function (res) { return res.json().then(function (json) { return { status: res.status, json: json }; }); })
+      .then(function (r) {
+        if (r.status === 200 && r.json.success) {
+          form.innerHTML =
+            '<div class="msg ok"><b>You are on the list.</b><br>' +
+            'I will email ' + email.replace(/[<>&"]/g, "") + ' when Pro opens. Nothing else, ever.</div>' +
+            '<p class="small muted">Want it sooner, or have an idea for the app? ' +
+            '<a href="mailto:hmobolajibello@gmail.com">Email me</a>.</p>';
+          return;
+        }
+        throw new Error((r.json && r.json.message) || "Something went wrong.");
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = "Join the list";
+        say("Could not reach the list just now. Email hmobolajibello@gmail.com and I will add you by hand.", false);
+        if (window.console) console.error(err);
+      });
+  });
 })();
 </script>
 </body>

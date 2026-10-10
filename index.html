@@ -383,7 +383,12 @@ select:disabled, input:disabled{opacity:.55; cursor:not-allowed}
   // offline: a key is only ever asked for when a Pro action is chosen, and a
   // failed check never takes Pro away again — a student on a plane keeps what
   // they paid for. See pro.html for what is gated and why.
-  var CHECKOUT_URL = "https://YOUR-STORE.lemonsqueezy.com/checkout/buy/YOUR-VARIANT-UUID";
+  // Pro is not on sale yet. Until it is, the Pro tab collects interest on
+  // /buy/ instead of pretending to sell something: a checkout link that 404s
+  // loses the person who was willing to pay.
+  var PRO_FOR_SALE = false;
+  var WAITLIST_URL = "./buy/";
+  var CHECKOUT_URL = ""; // set with PRO_FOR_SALE = true
   var LICENSE_API = "https://api.lemonsqueezy.com/v1/licenses";
   var VALIDATE_EVERY_DAYS = 7;
   var license = null;
@@ -477,8 +482,13 @@ select:disabled, input:disabled{opacity:.55; cursor:not-allowed}
           ? '<p class="pro-state on">Pro is active on this device. <span class="muted small">Key ' + escapeHtml(maskKey(license.key)) + '</span></p>' +
             '<div class="actions"><button type="button" class="btn link danger" id="proRemove">Remove the key from this device</button></div>'
           : '<p class="pro-state">Free plan — the extras below are locked.</p>' +
-            '<a class="btn primary" href="' + CHECKOUT_URL + '" target="_blank" rel="noopener">Unlock Pro</a>' +
-            '<p class="small muted">One payment. No subscription, no account, no ads.</p>') +
+            '<a class="btn primary" href="' + (PRO_FOR_SALE ? CHECKOUT_URL : WAITLIST_URL) + '"' +
+              (PRO_FOR_SALE ? ' target="_blank" rel="noopener"' : '') + '>' +
+              (PRO_FOR_SALE ? 'Unlock Pro' : 'Join the waitlist') + '</a>' +
+            (PRO_FOR_SALE
+              ? '<p class="small muted">One payment. No subscription, no account, no ads.</p>'
+              : '<p class="small muted">Pro is not on sale yet. Leave your email and I will tell you when it opens — ' +
+                'one small payment, no subscription.</p>')) +
       '</div>' +
 
       '<div class="card">' +
@@ -493,7 +503,7 @@ select:disabled, input:disabled{opacity:.55; cursor:not-allowed}
         '<p class="muted small">Topics, links, free study material, reminders and the day-by-day plan are free for everyone and always will be.</p>' +
       '</div>' +
 
-      '<div class="card">' +
+      '<div class="card" id="proKeyCard">' +
         '<h2>Enter your key</h2>' +
         '<p class="muted small">Your key arrived by email when you paid. Entering it here checks it with the store once, then it works offline.</p>' +
         '<label class="field" for="proKey">Licence key</label>' +
@@ -508,6 +518,11 @@ select:disabled, input:disabled{opacity:.55; cursor:not-allowed}
     var input = document.getElementById("proKey");
     var err = document.getElementById("proError");
     if (input && isPro()) input.value = license.key;
+    // Nobody has a key while Pro is unsold, so the field would only be a way
+    // to feel rejected. The waitlist replaces it until there is something to
+    // activate.
+    var keyCard = document.getElementById("proKeyCard");
+    if (keyCard) keyCard.hidden = !PRO_FOR_SALE;
 
     function submitKey() {
       var btn = document.getElementById("proActivate");
