@@ -17,7 +17,7 @@
  * deleted on activate. Changing index.html alone needs no bump — the background
  * refresh above keeps it current.
  */
-var CACHE_VERSION = "v3";
+var CACHE_VERSION = "v4";
 var CACHE_NAME = "study-planner-" + CACHE_VERSION;
 var INDEX = "./index.html";
 var SHELL = [
