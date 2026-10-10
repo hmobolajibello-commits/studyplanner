@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Planner Pro</title>
+<meta name="description" content="Unlock per-subject exam dates, priority, mock exams and backup in Study Planner. One payment, no subscription, no account.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#10151b" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../icons/icon-192.png" type="image/png">
+<style>
+:root{
+  --bg:#f4f6f8; --card:#ffffff; --card-2:#f7f9fa; --ink:#161b22; --muted:#5c6874;
+  --line:#dfe4ea; --line-soft:#eaeef2; --accent:#2f6f5e; --accent-ink:#ffffff;
+  --accent-soft:#e6f1ed; --warn:#8a5a12; --warn-soft:#fdf2dd;
+  --shadow:0 1px 2px rgba(16,24,32,.05), 0 6px 18px rgba(16,24,32,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#10151b; --card:#171d25; --card-2:#1d242d; --ink:#e8edf2; --muted:#9aa7b4;
+    --line:#2a333e; --line-soft:#222a34; --accent:#5fbfa2; --accent-ink:#0d1418;
+    --accent-soft:#1b2b28; --warn:#e0b063; --warn-soft:#2b2415;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font:16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif}
+.wrap{max-width:640px; margin:0 auto; padding:28px 16px 64px}
+header{text-align:center; margin-bottom:22px}
+.mark{width:72px; height:72px; border-radius:16px; display:block; margin:0 auto 12px}
+h1{margin:0; font-size:26px; letter-spacing:-.02em}
+.tagline{margin:6px 0 0; color:var(--muted)}
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:18px; margin:14px 0}
+h2{margin:0 0 4px; font-size:18px; letter-spacing:-.01em}
+p{margin:8px 0}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.btn{display:block; text-align:center; text-decoration:none; padding:14px 18px; margin-top:14px;
+  border-radius:12px; font-weight:650; border:1px solid var(--line); background:var(--card-2); color:var(--ink)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.btn .sub{display:block; font-weight:400; font-size:13px; opacity:.85; margin-top:2px}
+.price{display:flex; align-items:baseline; gap:10px; margin:6px 0 0}
+.price .amount{font-size:34px; font-weight:700; letter-spacing:-.03em}
+.price .note{color:var(--muted); font-size:14px}
+ul.plain{margin:8px 0 0; padding-left:20px; font-size:15px}
+ul.plain li{margin:6px 0}
+.free{border-left:4px solid var(--accent); background:var(--accent-soft); padding:12px 14px;
+  border-radius:10px; margin-top:14px; font-size:14px}
+ol{margin:10px 0 0; padding-left:22px}
+li{margin:6px 0}
+footer{text-align:center; color:var(--muted); font-size:13px; margin-top:26px}
+a{color:var(--accent)}
+details{margin-top:12px; font-size:14px}
+summary{cursor:pointer; font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="mark" src="../icons/icon-192.png" alt="">
+    <h1>Study Planner Pro</h1>
+    <p class="tagline">Four extra controls on the planner you already have.</p>
+  </header>
+
+  <div class="card">
+    <h2>One payment, kept forever</h2>
+    <div class="price">
+      <span class="amount">&pound;4</span>
+      <span class="note">once &middot; no subscription &middot; no account</span>
+    </div>
+    <a class="btn primary" id="checkout" href="#">
+      Unlock Pro
+      <span class="sub">Card, Apple Pay or PayPal &middot; instant key by email</span>
+    </a>
+    <p class="small muted" id="checkoutNote">After paying you get a licence key by email. Paste it into the
+      <b>Pro</b> tab of the app and the extras unlock on that device.</p>
+  </div>
+
+  <div class="card">
+    <h2>What you get</h2>
+    <ul class="plain">
+      <li><b>Its own exam date per subject</b> &mdash; a subject you have already sat stops being scheduled, and
+        the one sitting on Friday gets the last week.</li>
+      <li><b>Priority per subject</b> &mdash; low, normal or high, so hours shift towards what you are weakest at.</li>
+      <li><b>Mock exams</b> &mdash; a full timed paper every week or fortnight, always for the nearest exam.</li>
+      <li><b>Backup and restore</b> &mdash; save the whole plan to a file and load it on another phone.</li>
+    </ul>
+    <div class="free">
+      <b>The app itself stays free.</b> Subjects, topics, links, reminders, the day-by-day plan, offline and the
+      Android app are free for everyone and always will be. Nothing that already works will ever move behind this.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>How the key works</h2>
+    <ol class="small">
+      <li>Pay here. Your key arrives by email within a minute, usually immediately.</li>
+      <li>Open Study Planner, go to the <b>Pro</b> tab, paste the key, press <b>Unlock</b>.</li>
+      <li>It is checked with the store once. After that the app works offline exactly as before &mdash; the key is
+        stored on your own device, and no plan or study data ever leaves it.</li>
+    </ol>
+    <details>
+      <summary>Lost the key, or it will not go through?</summary>
+      <p class="small muted">Email <a href="mailto:hmobolajibello@gmail.com?subject=Study%20Planner%20Pro">hmobolajibello@gmail.com</a>
+        with the address you paid with and I will resend it. Refunds are fine within 14 days, no questions.</p>
+    </details>
+    <details>
+      <summary>One key on more than one device?</summary>
+      <p class="small muted">The key allows a small number of activations, so your phone and a spare are both fine.
+        If you run out, email me.</p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>Not sure yet?</h2>
+    <p class="muted small">Use the whole free app first &mdash; it is not a trial and nothing expires.</p>
+    <a class="btn" href="../">Open the free app</a>
+    <a class="btn" href="../get/">Get the Android app</a>
+  </div>
+
+  <footer>Made by Hakeem Mobolaji-Bello &middot; <a href="../classic/">classic version</a></footer>
+</div>
+<script>
+// One place to change the checkout link: set CHECKOUT_URL and every button on
+// this page, plus the one in the app, points at the same Lemon Squeezy product.
+// Until it is set the buttons say so rather than leading to a dead page.
+(function () {
+  var CHECKOUT_URL = "";
+  var btn = document.getElementById("checkout");
+  var note = document.getElementById("checkoutNote");
+  if (!CHECKOUT_URL) {
+    btn.removeAttribute("href");
+    btn.style.opacity = ".55";
+    btn.style.pointerEvents = "none";
+    note.textContent = "Checkout is not open yet.";
+    return;
+  }
+  btn.href = CHECKOUT_URL;
+})();
+</script>
+</body>
+</html>

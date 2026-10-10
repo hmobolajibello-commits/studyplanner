@@ -178,6 +178,17 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
 .notice ol{margin:6px 0 0; padding-left:20px}
 .status{font-weight:650; font-size:15px}
 .error{margin-top:12px; color:var(--danger); font-size:14px; font-weight:600}
+
+/* Pro: the free app is complete, so a locked control has to look deliberate
+   rather than broken. */
+.linkbtn{background:none; border:0; padding:0; font:inherit; color:var(--accent);
+  text-decoration:underline; cursor:pointer}
+.pro-state{margin:10px 0 0; font-weight:650; color:var(--muted)}
+.pro-state.on{color:var(--accent)}
+.pro-list{margin:8px 0 0; padding-left:20px; font-size:14px}
+.pro-list li{margin:6px 0}
+select:disabled, input:disabled{opacity:.55; cursor:not-allowed}
+.btn:disabled{opacity:.55; cursor:not-allowed}
 .actions{display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-top:16px}
 [hidden]{display:none !important}
 @media (max-width:420px){ h1{font-size:21px} .card{padding:14px} .tabs button{font-size:13px} }
@@ -195,6 +206,7 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     <button role="tab" id="tab-all" aria-controls="view-all" aria-selected="false" data-view="all">All days</button>
     <button role="tab" id="tab-setup" aria-controls="view-setup" aria-selected="false" data-view="setup">Setup</button>
     <button role="tab" id="tab-reminders" aria-controls="view-reminders" aria-selected="false" data-view="reminders">Reminders <span class="dot" id="remindersDot" hidden>on</span></button>
+    <button role="tab" id="tab-pro" aria-controls="view-pro" aria-selected="false" data-view="pro">Pro <span class="dot" id="proDot" hidden>on</span></button>
   </nav>
 
   <div class="card install" id="installBar" hidden>
@@ -216,6 +228,9 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     <section id="view-all" role="tabpanel" aria-labelledby="tab-all" hidden></section>
 
   <section id="view-reminders" role="tabpanel" aria-labelledby="tab-reminders" hidden></section>
+
+    <!-- PRO -->
+    <section id="view-pro" role="tabpanel" aria-labelledby="tab-pro" hidden></section>
 
     <!-- SETUP -->
     <section id="view-setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
@@ -253,12 +268,13 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
 
         <label class="field" for="mocks">Mock exams
           <span class="hint">Full timed papers, scheduled on weekends where possible.</span>
-          <select id="mocks">
+          <select id="mocks" disabled>
             <option value="weekly">Every week</option>
             <option value="fortnightly">Every two weeks</option>
             <option value="off">None</option>
           </select>
         </label>
+        <p class="small muted">Pro — <button type="button" class="linkbtn" data-view="pro">unlock mock exams, priority and per-subject dates</button></p>
 
         <p class="error" id="formError" hidden></p>
         <button type="submit" class="btn primary" id="generateBtn">Generate my plan</button>
@@ -279,13 +295,14 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
         <h2>Backup</h2>
         <p class="muted small">Your plan lives in this app on this device only. A backup is one file you can keep
           or move to another phone.</p>
-        <div class="actions">
-          <button type="button" class="btn" id="exportBtn">Save a backup file</button>
-          <button type="button" class="btn" id="importBtn">Restore from a backup</button>
+        <div class="actions" id="backupActions">
+          <button type="button" class="btn" id="exportBtn" disabled>Save a backup file</button>
+          <button type="button" class="btn" id="importBtn" disabled>Restore from a backup</button>
         </div>
+        <p class="small muted" id="backupLock">Pro — <button type="button" class="linkbtn" data-view="pro">unlock backup and restore</button></p>
         <input type="file" id="importFile" accept="application/json,.json" hidden>
         <p class="error" id="importError" hidden></p>
-      </form>
+      </div>
     </section>
   </main>
 
@@ -297,6 +314,7 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
   "use strict";
 
   var STORAGE_KEY = "study-planner.v1";
+  var LICENSE_KEY = "study-planner.license";
   var DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   var WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Monday-first for the busy-day checkboxes
   var MAX_SUBJECTS = 12;
@@ -358,6 +376,192 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
       }));
     } catch (e) { /* private mode / quota: the app still works for this session */ }
   }
+
+  /* ------------------------------------------------------------- license */
+  // Pro is a licence key from Lemon Squeezy, checked against their Licence API
+  // (activate on first use, validate after that). The app itself stays free and
+  // offline: a key is only ever asked for when a Pro action is chosen, and a
+  // failed check never takes Pro away again — a student on a plane keeps what
+  // they paid for. See pro.html for what is gated and why.
+  var CHECKOUT_URL = "https://YOUR-STORE.lemonsqueezy.com/checkout/buy/YOUR-VARIANT-UUID";
+  var LICENSE_API = "https://api.lemonsqueezy.com/v1/licenses";
+  var VALIDATE_EVERY_DAYS = 7;
+  var license = null;
+
+  function loadLicense() {
+    try {
+      var raw = localStorage.getItem(LICENSE_KEY);
+      license = raw ? JSON.parse(raw) : null;
+    } catch (e) { license = null; }
+    if (!license || !license.key) license = null;
+  }
+  function saveLicense() {
+    try {
+      if (license) localStorage.setItem(LICENSE_KEY, JSON.stringify(license));
+      else localStorage.removeItem(LICENSE_KEY);
+    } catch (e) { /* nothing we can do; Pro still holds for this session */ }
+  }
+  function isPro() { return !!(license && license.key); }
+  function licenseLabel() {
+    if (!isPro()) return "Free";
+    if (license.status === "active") return "Pro";
+    return "Pro (" + (license.status || "unchecked") + ")";
+  }
+
+  // Both endpoints take form-encoded fields and answer with { valid, license_key }.
+  function licenseCall(endpoint, body) {
+    var form = new FormData();
+    form.append("license_key", body.key);
+    if (body.instance) form.append("instance_id", body.instance);
+    if (body.instanceName) form.append("instance_name", body.instanceName);
+    return fetch(LICENSE_API + "/" + endpoint, { method: "POST", body: form })
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        var lk = (json && json.license_key) || {};
+        return {
+          ok: !!(json && json.valid),
+          status: lk.status || (json && json.valid ? "active" : "invalid"),
+          instance: lk.instance_id ? String(lk.instance_id) : (body.instance || ""),
+          error: json && json.error
+        };
+      });
+  }
+
+  // Returns a Promise resolving to true when Pro is on. "Quiet" is for the
+  // background re-check on launch, which must never nag anyone.
+  function activateLicense(key, quiet) {
+    key = String(key || "").trim();
+    if (!key) return Promise.resolve(false);
+
+    var already = isPro() && license.key === key;
+    var endpoint = already ? "validate" : "activate";
+    var instanceName = (navigator.userAgent || "device").slice(0, 60);
+
+    return licenseCall(endpoint, {
+      key: key,
+      instance: already ? license.instance : "",
+      instanceName: already ? "" : instanceName
+    }).then(function (r) {
+      if (r.ok) {
+        license = { key: key, status: r.status, instance: r.instance, checkedOn: today() };
+        saveLicense();
+        render();
+        return true;
+      }
+      // A network failure must not read as "your key is bad".
+      if (!quiet) {
+        license = null;
+        saveLicense();
+      }
+      return false;
+    }).catch(function () {
+      return quiet && isPro();
+    });
+  }
+
+  // Re-check a stored key at most weekly. Offline, the stored key simply stands.
+  function recheckLicense() {
+    if (!isPro() || license.checkedOn === today()) return;
+    if (daysBetween(license.checkedOn || today(), today()) < VALIDATE_EVERY_DAYS) return;
+    activateLicense(license.key, true);
+  }
+
+  function renderPro() {
+    var on = isPro();
+    el.pro.innerHTML =
+      '<div class="card">' +
+        '<h2>Study Planner Pro</h2>' +
+        '<p class="muted small">The app is free and stays free — planning, ticks, reminders and offline all work without paying. ' +
+        'Pro is one payment that unlocks the extras below on this device.</p>' +
+        (on
+          ? '<p class="pro-state on">Pro is active on this device. <span class="muted small">Key ' + escapeHtml(maskKey(license.key)) + '</span></p>' +
+            '<div class="actions"><button type="button" class="btn link danger" id="proRemove">Remove the key from this device</button></div>'
+          : '<p class="pro-state">Free plan — the extras below are locked.</p>' +
+            '<a class="btn primary" href="' + CHECKOUT_URL + '" target="_blank" rel="noopener">Unlock Pro</a>' +
+            '<p class="small muted">One payment. No subscription, no account, no ads.</p>') +
+      '</div>' +
+
+      '<div class="card">' +
+        '<h2>What Pro adds</h2>' +
+        '<ul class="pro-list">' +
+          '<li><b>Every subject gets its own exam date</b> — so a subject you have already sat stops being scheduled, ' +
+            'and the one sitting on Friday gets the last week.</li>' +
+          '<li><b>Priority per subject</b> — low, normal or high, so hours shift towards what you are weakest at.</li>' +
+          '<li><b>Mock exams</b> — a full timed paper every week or fortnight, always for the nearest exam.</li>' +
+          '<li><b>Backup and restore</b> — save the whole plan to a file and load it on another phone.</li>' +
+        '</ul>' +
+        '<p class="muted small">Topics, links, free study material, reminders and the day-by-day plan are free for everyone and always will be.</p>' +
+      '</div>' +
+
+      '<div class="card">' +
+        '<h2>Enter your key</h2>' +
+        '<p class="muted small">Your key arrived by email when you paid. Entering it here checks it with the store once, then it works offline.</p>' +
+        '<label class="field" for="proKey">Licence key</label>' +
+        '<div class="subject-add">' +
+          '<input type="text" id="proKey" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" autocomplete="off" spellcheck="false" aria-label="Licence key">' +
+          '<button type="button" class="btn" id="proActivate">Unlock</button>' +
+        '</div>' +
+        '<p class="error" id="proError" hidden></p>' +
+        '<p class="small muted">No key, or it will not go through? <a href="mailto:hmobolajibello@gmail.com?subject=Study%20Planner%20Pro">Email me</a> and I will sort it out.</p>' +
+      '</div>';
+
+    var input = document.getElementById("proKey");
+    var err = document.getElementById("proError");
+    if (input && isPro()) input.value = license.key;
+
+    function submitKey() {
+      var btn = document.getElementById("proActivate");
+      var key = input ? input.value : "";
+      if (!key.trim()) { showProError("Enter the key from your email."); return; }
+      if (btn) { btn.disabled = true; btn.textContent = "Checking…"; }
+      if (err) err.hidden = true;
+      activateLicense(key, false).then(function (ok) {
+        if (ok) { render(); return; }
+        if (btn) { btn.disabled = false; btn.textContent = "Unlock"; }
+        showProError(navigator.onLine
+          ? "That key was not accepted. Check for a typo, or email me and I will fix it."
+          : "You look offline. Connect to the internet once, then try again.");
+      });
+    }
+    function showProError(msg) {
+      if (!err) return;
+      err.textContent = msg;
+      err.hidden = false;
+    }
+
+    var activateBtn = document.getElementById("proActivate");
+    if (activateBtn) activateBtn.addEventListener("click", submitKey);
+    if (input) input.addEventListener("keydown", function (e) { if (e.key === "Enter") submitKey(); });
+
+    var removeBtn = document.getElementById("proRemove");
+    if (removeBtn) removeBtn.addEventListener("click", function () {
+      if (!window.confirm("Remove Pro from this device? Your plan and ticks are kept.")) return;
+      license = null;
+      saveLicense();
+      render();
+    });
+  }
+
+  // The three Pro controls that live in the Setup form are static markup, so
+  // they are enabled or disabled here rather than in a render function.
+  function syncProLocks() {
+    var pro = isPro();
+    el.mocks.disabled = !pro;
+    el.exportBtn.disabled = !pro;
+    el.importBtn.disabled = !pro;
+    el.backupLock.hidden = pro;
+  }
+
+  function maskKey(key) {
+    var s = String(key);
+    return s.length <= 8 ? s : s.slice(0, 4) + "…" + s.slice(-4);
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
 
   /* ------------------------------------------------------- subject model */
   // v1 stored subjects as plain strings. Each one now carries its own exam
@@ -952,15 +1156,26 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
       "</div>";
 
     if (expanded) {
+      // Priority and a per-subject exam date are the two Pro controls that
+      // change the generated plan. A key does not rewrite the plan behind the
+      // user's back, so while they are locked the stored values stay as they
+      // are; unlocking simply makes them editable again.
+      var pro = isPro();
+      var priorityOptions = ['low', 'normal', 'high'];
+      if (priorityOptions.indexOf(subject.priority) === -1) priorityOptions.push(subject.priority);
+
       html += '<div class="subject-body">' +
         '<div class="row">' +
-        '<label class="field">Priority<select data-priority="' + index + '">' +
-        ['low', 'normal', 'high'].map(function (p) {
+        '<label class="field">Priority<select data-priority="' + index + '"' + (pro ? "" : " disabled") + ">" +
+        priorityOptions.map(function (p) {
           return '<option value="' + p + '"' + (subject.priority === p ? " selected" : "") + ">" +
             (p === "low" ? "Low — I'm solid" : p === "high" ? "High — I'm weak" : "Normal") + "</option>";
-        }).join("") + "</select></label>" +
-        '<label class="field">Its own exam date<span class="hint">Optional</span>' +
-        '<input type="date" data-subject-exam="' + index + '" value="' + esc(subject.examDate) + '"></label>' +
+        }).join("") + "</select>" +
+        (pro ? '<span class="hint">Shifts hours towards what you are weakest at.</span>'
+             : '<span class="hint">Pro — <button type="button" class="linkbtn" data-view="pro">unlock</button></span>') +
+        "</label>" +
+        '<label class="field">Its own exam date<span class="hint">' + (pro ? "Optional" : "Pro") + '</span>' +
+        '<input type="date" data-subject-exam="' + index + '" value="' + esc(subject.examDate) + '"' + (pro ? "" : " disabled") + '></label>' +
         "</div>" +
 
         '<label class="field">Topics<span class="hint">Comma separated. The plan works through these one at a time.</span>' +
@@ -1035,11 +1250,13 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     tagline: document.getElementById("tagline"),
     todayCount: document.getElementById("todayCount"),
     remindersDot: document.getElementById("remindersDot"),
+    proDot: document.getElementById("proDot"),
     views: {
       today: document.getElementById("view-today"),
       all: document.getElementById("view-all"),
       setup: document.getElementById("view-setup"),
-      reminders: document.getElementById("view-reminders")
+      reminders: document.getElementById("view-reminders"),
+      pro: document.getElementById("view-pro")
     },
     form: document.getElementById("setupForm"),
     subjectInput: document.getElementById("subjectInput"),
@@ -1052,7 +1269,11 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     mocks: document.getElementById("mocks"),
     freeSources: document.getElementById("freeSources"),
     importFile: document.getElementById("importFile"),
-    importError: document.getElementById("importError")
+    importError: document.getElementById("importError"),
+    pro: document.getElementById("view-pro"),
+    backupLock: document.getElementById("backupLock"),
+    exportBtn: document.getElementById("exportBtn"),
+    importBtn: document.getElementById("importBtn")
   };
 
   function esc(s) {
@@ -1258,10 +1479,13 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
     if (state.view === "today") renderToday();
     else if (state.view === "all") renderAll();
     else if (state.view === "reminders") renderReminders();
+    else if (state.view === "pro") renderPro();
     else renderSetup();
 
     var remindersOn = state.reminders.enabled && permissionState() === "granted";
     el.remindersDot.hidden = !remindersOn;
+    el.proDot.hidden = !isPro();
+    syncProLocks();
 
     Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (btn) {
       var on = btn.getAttribute("data-view") === state.view;
@@ -1393,13 +1617,15 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
       if (state.view === "today") renderToday(); else renderAll();
       return;
     }
-    if (box.matches && box.matches("[data-priority]")) {
+    // The Pro controls are disabled without a key, so this is belt and braces:
+    // a locked control can never reach the saved settings.
+    if (box.matches && box.matches("[data-priority]") && isPro()) {
       state.settings.subjects[Number(box.getAttribute("data-priority"))].priority = box.value;
       save();
       renderSetup();
       return;
     }
-    if (box.matches && box.matches("[data-subject-exam]")) {
+    if (box.matches && box.matches("[data-subject-exam]") && isPro()) {
       state.settings.subjects[Number(box.getAttribute("data-subject-exam"))].examDate = box.value || "";
       save();
       renderSetup();
@@ -1482,7 +1708,9 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
 
     var s = state.settings;
     s.examDate = el.examDate.value;
-    s.mocks = el.mocks.value;
+    // Mock exams are Pro. Without a key the stored cadence is left alone rather
+    // than reset, so a lapsed key does not quietly change a saved plan.
+    if (isPro()) s.mocks = el.mocks.value;
     s.schoolHours = readNumber(el.schoolHours, 0);
     s.weekendHours = readNumber(el.weekendHours, 0);
     el.schoolHours.value = s.schoolHours;
@@ -1573,8 +1801,10 @@ a.btn{display:inline-flex; align-items:center; text-decoration:none; color:var(-
   if (!Array.isArray(state.settings.subjects)) state.settings.subjects = [];
   if (!Array.isArray(state.settings.busyDays)) state.settings.busyDays = [];
   state.reminders = normalizeReminders(state.reminders);
+  loadLicense();
   state.view = viewFromHash() || (state.plan ? "today" : "setup");
   render();
+  recheckLicense();
 
   var yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
